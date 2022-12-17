@@ -206,48 +206,48 @@
 <li>ex) 키보드, 마우스</li>
 <li>C 언어는 다음과 같이 표준 입력 및 콘솔 입력 방식으로 이 두 장치를 제어한다.</li>
 </ul>
-<pre><code class="language-c">scanf, getc, getch, gets, ⋯
+<pre><code>scanf, getc, getch, gets, ⋯
 </code></pre>
 <h3 id="lcd-출력"><a class="header" href="#lcd-출력">LCD 출력</a></h3>
 <ul>
 <li>대부분의 프로그래밍 언어는 출력문을 가지고 있다.</li>
 <li>컴퓨터는 주로 모니터를 통해 정보를 출력하며, C 언어는 표준 출력·콘솔 출력 이라는 두 가지 형태의 출력 방식이 있다.</li>
 </ul>
-<pre><code class="language-c">printf, putc, puts, ⋯
+<pre><code>printf, putc, puts, ⋯
 </code></pre>
 <h3 id="상수"><a class="header" href="#상수">상수</a></h3>
 <ul>
 <li>숫자와 기호, 문자 등 한정된 입력 대상을 상수라고 한다.</li>
 <li>프로그래밍 언어에서는 숫자 상수, 문자 상수, 문자열 상수로 나누어 표현한다.</li>
 </ul>
-<pre><code class="language-c">1, 2, 3, 'a', 'b', &quot;abc&quot;, ⋯
+<pre><code>1, 2, 3, 'a', 'b', &quot;abc&quot;, ⋯
 </code></pre>
 <h3 id="연산자"><a class="header" href="#연산자">연산자</a></h3>
 <ul>
 <li>덧셈, 뺄셈, 나눗셈과 같은 연산 기능이 있다.</li>
 <li>모든 프로그래밍 언어는 연산 기능을 수행할 수 있는 연산자를 가지고 있다.</li>
 </ul>
-<pre><code class="language-c">+, -, *, /, %, ⋯
+<pre><code>+, -, *, /, %, ⋯
 </code></pre>
 <h3 id="변수"><a class="header" href="#변수">변수</a></h3>
 <ul>
 <li>계산기나 컴퓨터는 연산 과정에서 사용자가 입력한 값을 기억하고 연산 결과로 나온 값도 기억해야 하기 때문에 기억 공간이 필요하다.</li>
 <li>이 기억 공간을 변수라고 한다.</li>
 </ul>
-<pre><code class="language-c">int sum; double money; char type; ⋯
+<pre><code>int sum; double money; char type; ⋯
 </code></pre>
 <h3 id="조건문"><a class="header" href="#조건문">조건문</a></h3>
 <ul>
 <li>사용자가 어떤 연산자를 선택하는지에 따라 다른 작업을 수행하도록 표현하는 문법을 프로그래밍 언어에서는 조건문이라고 한다.</li>
 </ul>
-<pre><code class="language-c">if, switch, ⋯
+<pre><code>if, switch, ⋯
 </code></pre>
 <h3 id="반복문"><a class="header" href="#반복문">반복문</a></h3>
 <ul>
 <li>계산기는 계산 작업을 반복해서 수행하도록 만들어졌다.</li>
 <li>프로그래밍 언어도 사용자가 원하는 작업을 반복해서 수행할 수 있도록 반복문을 제공한다.</li>
 </ul>
-<pre><code class="language-c">for, while, do ~ while, ⋯
+<pre><code>for, while, do ~ while, ⋯
 </code></pre>
 <blockquote>
 <h4 id="고급스러운-언어-저급한-언어"><a class="header" href="#고급스러운-언어-저급한-언어">고급스러운 언어, 저급한 언어?</a></h4>
@@ -341,11 +341,7 @@ EXIT :
 <li>예약어는 의미나 역할이 정해져 있기 때문에 그 뜻을 바꾸거나 다른 용도로 사용할 수 없다.</li>
 </ul>
 <h2 id="1-5-c-프로그램-실행-파일"><a class="header" href="#1-5-c-프로그램-실행-파일">1-5. C 프로그램 실행 파일</a></h2>
-<pre><code class="language-mermaid">flowchart LR
-    A[&quot;소스 파일(*.c)&quot;] --- |컴파일| B;
-    B[&quot;목적 파일(*.obj)&quot;] --- |링크| C;
-    C[&quot;실행 파일(*.exe)&quot;]
-</code></pre>
+<p><img src="./images/program_diagram.png" alt="프로그램 생성 과정" /></p>
 <h3 id="소스-파일c"><a class="header" href="#소스-파일c">소스 파일(*.c)</a></h3>
 <ul>
 <li>소스 파일(Source File)은 프로그래머가 만들고 싶은 프로그램을 C 언어 문법을 사용해서 작성한 파일을 말한다.</li>
