@@ -15,3 +15,8 @@ build-dir = "docs"
 create-missing = true
 use-default-preprocessors = true
 extra-watch-dirs = []
+
+[output.html]
+default-theme = "Ayu"
+git-repository-url = "https://github.com/jerok-kim/do_it_c"
+git-repository-icon = "fa-github"

@@ -1,6 +1,7 @@
 # Summary
 
 [Introduction](README.md)
+# C 언어 기본 문법
 - [프로그램과 C 언어](./chapter_01.md)
 - [C언어로 만드는 첫 번째 프로그램](./chapter_02.md)
 - [자료형](./chapter_03.md)
@@ -13,6 +14,7 @@
 - [시프트 연산자와 비트 연산자](./chapter_10.md)
 - [지역 변수와 전역 변수](./chapter_11.md)
 - [주니어 프로그래머 딱지 떼는 다섯 가지 팁!](./tip_1.md)
+# C 언어 완성하기
 - [배열과 문자열](./chapter_12.md)
 - [포인터](./chapter_13.md)
 - [표준 입력 함수](./chapter_14.md)
