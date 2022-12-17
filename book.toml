@@ -1,0 +1,17 @@
+[book]
+title = "Study: Do it C 언어 입문"
+authors = ["jerok-kim"]
+description = "<Do it C 언어 입문> 책을 공부하면서 기록한 정리 글입니다."
+language = "kr"
+multilingual = true
+src = "src"
+
+[rust]
+edition = "2021"
+
+[build]
+# github pages에서 main브랜치의 docs폴더를 deploy 하기 위해 변경
+build-dir = "docs"
+create-missing = true
+use-default-preprocessors = true
+extra-watch-dirs = []
