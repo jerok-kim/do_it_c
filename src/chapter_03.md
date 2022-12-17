@@ -233,4 +233,4 @@ pi = 3.14159264;
 > 
 > IEEE 754 에 대한 자세한 내용은 아래의 링크를 참조하자.
 > 
-> http://tipssoft.com/bulletin/board.php?bo_table=FAQ&wr_id=177
+> <http://tipssoft.com/bulletin/board.php?bo_table=FAQ&wr_id=177>
