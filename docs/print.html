@@ -3504,7 +3504,235 @@ double GetArea(const double pi, double radius, int limit) {
 <div style="break-before: page; page-break-before: always;"></div><h1 id="18-구조체와-연결-리스트"><a class="header" href="#18-구조체와-연결-리스트">18. 구조체와 연결 리스트</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="19-파일-입출력"><a class="header" href="#19-파일-입출력">19. 파일 입출력</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="20-함수-포인터"><a class="header" href="#20-함수-포인터">20. 함수 포인터</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="tip1-주니어-프로그래머-딱지-떼는-다섯-가지-팁"><a class="header" href="#tip1-주니어-프로그래머-딱지-떼는-다섯-가지-팁">Tip1. 주니어 프로그래머 딱지 떼는 다섯 가지 팁!</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="주니어-프로그래머-딱지-떼는-다섯-가지-팁"><a class="header" href="#주니어-프로그래머-딱지-떼는-다섯-가지-팁">주니어 프로그래머 딱지 떼는 다섯 가지 팁!</a></h1>
+<h2 id="tip-1-함수가-필요한-이유를-기억하자"><a class="header" href="#tip-1-함수가-필요한-이유를-기억하자">Tip 1. 함수가 필요한 이유를 기억하자</a></h2>
+<ul>
+<li>내가 개발하는 프로그램에 두 변수의 값을 합산하는 경우가 많다고 가정해 보자.</li>
+</ul>
+<blockquote>
+<h4 id="a-유형-그냥-편하게-살자"><a class="header" href="#a-유형-그냥-편하게-살자">A 유형: '그냥 편하게 살자'</a></h4>
+<pre><code class="language-c">void main() {
+    int var1 = 1, var2 = -3, var3 = 5;
+    int var4 = -2, var5 = 7, var6 = -9;
+    int result1, result2, result3;
+    
+    result1 = var1 + var2;
+    result2 = var3 + var4;
+    result3 = var5 + var6;
+    // 위와 같은 연산이 많다고 가정함
+}
+</code></pre>
+<h4 id="b-유형-함수를-활용하자"><a class="header" href="#b-유형-함수를-활용하자">B 유형: '함수를 활용하자'</a></h4>
+<pre><code class="language-c">int Sum(int data1, int data2) {
+    return data1 + data2;
+}
+
+void main() {
+    int var1 = 1, var2 = -3, var3 = 5;
+    int var4 = -2, var5 = 7, var6 = -9;
+    int result1, result2, result3;
+    
+    result1 = Sum(var1, var2);
+    result2 = Sum(var3, var4);
+    result3 = Sum(var5, var6);
+    // 위와 같은 연산이 많다고 가정함
+}
+</code></pre>
+<ul>
+<li>A 유형이 B 유형에 비해 소스 코드도 간단하고 프로그램을 실행할 때 수행 속도도 더 빠르다.</li>
+<li>하지만 A 유형은 변화에 대처하기 어렵다는 치명적인 단점을 가지고 있다.</li>
+<li>프로그램을 개발해 달라고 의뢰한 사람이 기능 변경을 요구한다면 A 유형 프로그래머는 자신이 사용한 코드를 모두 찾아내어 바꾸는 코드를 추가해야 하기 때문에 스트레스를 많이 받을 것이다.</li>
+</ul>
+</blockquote>
+<blockquote>
+<h4 id="a-유형-아-스트레스"><a class="header" href="#a-유형-아-스트레스">A 유형: '아~ 스트레스'</a></h4>
+<pre><code class="language-c">void main() {
+    int var1 = 1, var2 = -3, var3 = 5;
+    int var4 = -2, var5 = 7, var6 = -9;
+    int result1, result2, result3;
+    
+    // 덧셈이 있는 곳은 다 바꿔야 함
+    if(var1 &lt; 0) var1 *= -1;
+    if(var2 &lt; 0) var2 *= -1;
+    result1 = var1 + var2;
+    if(var3 &lt; 0) var3 *= -1;
+    if(var4 &lt; 0) var4 *= -1;
+    result2 = var3 + var4;
+    if(var5 &lt; 0) var5 *= -1;
+    if(var6 &lt; 0) var6 *= -1;
+    result3 = var5 + var6;
+}
+</code></pre>
+<h4 id="b-유형-바로-변경해-드릴게요"><a class="header" href="#b-유형-바로-변경해-드릴게요">B 유형: '바로 변경해 드릴게요~'</a></h4>
+<pre><code class="language-c">int Sum(int data1, int data2) {
+    // 음수에 -1을 곱하면 양수가 됨
+    if(data1 &lt; 0) data1 *= -1;
+    if(data2 &lt; 0) data2 *= -1;
+    return data1 + data2;
+}
+
+void main() {
+    int var1 = 1, var2 = -3, var3 = 5;
+    int var4 = -2, var5 = 7, var6 = -9;
+    int result1, result2, result3;
+    // 여기는 수정이 필요 없음
+    result1 = Sum(var1, var2);
+    result2 = Sum(var3, var4);
+    result3 = Sum(var5, var6);
+}
+</code></pre>
+<ul>
+<li>A 유형은 중복 코드가 엄청나게 많이 발생하고, 소스 코드를 수정하다가 실수가 나오기 쉽다.</li>
+<li>따라서 B 유형처럼 중복되는 코드를 미리 함수로 작업해 두면 대처하기가 훨씬 쉽다.</li>
+<li>하지만 함수를 호출하는 행위가 수행 속도에 영향을 미치기 때문에 모든 코드를 무조건 함수로 만드는 것은 좋지 않다.</li>
+<li>해당 작업의 빈도나 중요성 그리고 변화 가능성을 잘 따져서 함수로 만들 것인지를 결정하자.</li>
+</ul>
+</blockquote>
+<h2 id="tip-2-프로그램에서-if-조건문은-줄이는-것이-좋다"><a class="header" href="#tip-2-프로그램에서-if-조건문은-줄이는-것이-좋다">Tip 2. 프로그램에서 if 조건문은 줄이는 것이 좋다</a></h2>
+<ul>
+<li>컴퓨터는 명령을 순차적으로 실행하는 데 최적화되어 있기 때문에, <code>if</code>조건문을 사용하여 실행 흐름을 자주 변경하면 수행 능력이 떨어진다.</li>
+<li>그래서 구조나 수식을 잘 활용하여 조건문을 최대한 적게 사용하려고 노력해야 한다.</li>
+<li>예를 들어 '변수 A값이 5이면 A에 2를 더한다'라는 작업을 <code>if</code>조건문으로 작성하면 다음과 같다.</li>
+</ul>
+<pre><code class="language-c">if(5 == A) A = A + 2;
+</code></pre>
+<ul>
+<li>그런데 다음과 같은 수식으로도 위 소스 코드와 같은 결과를 낼 수 있다.</li>
+</ul>
+<pre><code class="language-c">A = A + 2 * (5 == A);  // 조건 수식 5 == A가 참이면 1. A = A + 2 * 1이 됨.
+                       // 조건 수식 5 == A가 거짓이면 0. A = A + 2 * 0이 됨.
+</code></pre>
+<ul>
+<li>물론 이 두 수식을 한두 번 사용하는 것으로 수행 능력을 논하기에는 어려움이 있을 것이다.</li>
+<li>하지만 이렇게 <code>if</code>조건문 대신 조건 수식을 사용해야겠다는 생각을 늘 하다 보면 빠르게 반복 수행해야 하는 코드나 대량의 데이터를 처리하는 프로그램에서 더 좋은 코드를 만들 수 있다.</li>
+</ul>
+<blockquote>
+<h4 id="숫자를-0-1-2-3-4-0-1-2-3-4-순서로-출력해야-한다면"><a class="header" href="#숫자를-0-1-2-3-4-0-1-2-3-4-순서로-출력해야-한다면">숫자를 0, 1, 2, 3, 4, 0, 1, 2, 3, 4 순서로 출력해야 한다면</a></h4>
+<h4 id="a-유형-반복문만-사용"><a class="header" href="#a-유형-반복문만-사용">A 유형: 반복문만 사용</a></h4>
+<pre><code class="language-c">int step, i;
+
+for(step = 0; step &lt; 2; step++) {
+    // 0, 1, 2, 3, 4, 출력
+    for(i = 0; i &lt; 5; i++) printf(&quot;%d,&quot;, i);
+}
+</code></pre>
+<h4 id="b-유형-if-조건문-사용"><a class="header" href="#b-유형-if-조건문-사용">B 유형: if 조건문 사용</a></h4>
+<pre><code class="language-c">int i, count = 0;
+for(i = 0; i &lt; 10; i++) {
+    // i가 5일 때 다시 0으로 바꿈
+    if(count == 5) count = 0;
+    printf(&quot;%d,&quot;, count++);
+}
+</code></pre>
+<ul>
+<li>A 유형은 0~4를 출력하는 <code>for</code>반복문을 두 번 반복하는 방법을 선택했고,</li>
+<li>B 유형은 출력 변수 <code>count</code>를 따로 두고 그 값이 5가 되면 다시 0으로 변경하는 방법을 선택했다.</li>
+<li>그런데 다음과 같이 나머지 연산자인 <code>%</code>의 연산 특성을 이용하면 변수도 하나 줄이고 <code>if</code>조건문도 줄여서 좀 더 간결하게 코드를 구성할 수 있다.</li>
+</ul>
+<pre><code class="language-c">int i;
+for(i = 0; i &lt; 10; i++) {
+    // i를 5로 나눈 나머지를 출력함. 따라서 5, 6, 7, 8, 9는 0, 1, 2, 3, 4로 출력됨
+    printf(&quot;%d,&quot;, i%5);
+}
+</code></pre>
+</blockquote>
+<ul>
+<li>문법을 사용하는 방법을 아는 것도 중요하지만, 지금까지 배운 문법들이 왜 만들어졌고 어떤 특성을 가지고 있는지를 파악하려고 노력해야 코드를 더 효과적으로 구성할 수 있다.</li>
+<li>여기에서 주의할 점은 굳이 <code>if</code>조건문을 줄일 필요가 없는 형태도 있다는 것이다.</li>
+<li>예를 들어 'A가 2보다 크고 10보다 작으면, A를 1증가시키는 작업'을 <code>if</code>조건문으로 작성하는 경우 다음처럼 두 가지 유형으로 구성할 수 있다.</li>
+</ul>
+<blockquote>
+<h4 id="a-유형-조건문-나열"><a class="header" href="#a-유형-조건문-나열">A 유형: 조건문 나열</a></h4>
+<pre><code class="language-c">if(A &gt; 2) {
+    if(A &lt; 10) A++;
+}
+</code></pre>
+<h4 id="b-유형-관계-연산자-활용"><a class="header" href="#b-유형-관계-연산자-활용">B 유형: 관계 연산자 활용</a></h4>
+<pre><code class="language-c">if(A &gt; 2 &amp;&amp; A &lt; 10) A++;
+</code></pre>
+</blockquote>
+<ul>
+<li>두 유형은 같은 작업을 하는 코드이고 조건 수식도 두 번씩 처리되지만 B 유형이 A 유형보다 조건문을 한 번 더 적게 실행한다.</li>
+<li>B 유형이 A 유형보다 더 효율적일까?</li>
+<li>컴파일러가 번역하면 같은 형태의 기계어를 만든다.</li>
+<li>따라서 어느 쪽을 사용하든 상관 없다.</li>
+</ul>
+<h2 id="tip-3-조건문에서-조건-수식은-단순화시키자"><a class="header" href="#tip-3-조건문에서-조건-수식은-단순화시키자">Tip 3. 조건문에서 조건 수식은 단순화시키자</a></h2>
+<ul>
+<li><code>if</code>조건문을 사용하다 보면 조건 수식이 0과 다른지 비교하는 경우가 있다.</li>
+<li><code>if(0 != A)</code> ⇒ <code>if(A)</code></li>
+<li><code>0 != A</code>와 <code>A</code>가 완벽하게 같다는 뜻은 아니지만, 실제로 위의 두 표현은 기계어로 번역할 때 동일하게 번역된다.</li>
+<li><code>if(0 == A)</code> ⇒ <code>if(!A)</code> 다음과 같은 표현도 서로 동일한 표현이다.</li>
+<li>관계 연산을 사용하다 보면 '아닌 것이 아니다'와 같은 표현을 사용해서 코드가 더 복잡하게 표현되는 경우도 있다.</li>
+<li>이런 경우 바깥쪽의 NOT을 없애는 공식을 사용해서 좀 더 간결하게 표현할 수 있다.</li>
+<li><code>NOT(A AND B)</code> ⇔ <code>(NOT A) OR (NOT B)</code></li>
+<li><code>NOT(A OR B)</code> ⇔ <code>(NOT A) AND (NOT B)</code></li>
+<li>위 공식을 사용하면 다음과 같이 조건 수식을 단순화할 수 있다.</li>
+<li><code>if(!(A == 0 &amp;&amp; B == 0))</code> ⇒ <code>if(A != 0 || B != 0)</code> ⇒ <code>if(A || B)</code></li>
+<li>이렇게 코드를 변경한다고 수행 속도가 빨라지는 것은 아니다.</li>
+<li>컴파일러가 소스를 번역할 때 위와 같은 최적화 작업을 알아서 해주기 때문에 대부분 동일한 기계어 코드가 만들어진다.</li>
+<li>하지만 컴파일러에 의존하는 것보다 간단한 것은 직접 단순화하는 것이 좋다.</li>
+</ul>
+<h2 id="tip-4-사용하는-시스템의-메모리-정렬-방식을-알아-두자"><a class="header" href="#tip-4-사용하는-시스템의-메모리-정렬-방식을-알아-두자">Tip 4. 사용하는 시스템의 메모리 정렬 방식을 알아 두자</a></h2>
+<ul>
+<li>과거 컴퓨터들은 구조 설계 방식이 CISC(Complex Instruction Set Computer)와 RISC(Reduced Instruction Set Computer)로 나뉘어 있었다.</li>
+<li>CISC는 모든 고급 언어의 명령에 각각의 기계어가 대응되게 한 것이고, RISC는 자주 사용하는 명령만 모아 프로세서를 만든 것이다.</li>
+<li>이 두 방식의 많은 차이점 가운데, 개발자 입장에서 알아야 할 차이점은 메모리 정렬 방식이 다르다는 점이다.</li>
+<li>비트 단위의 메모리 정렬은 CISC방식이나 RISC방식 모두 같기 때문에 상관없지만, 여러 개의 바이트가 모여서 표현되는 메모리를 정렬할 때는 이 두 방식에 차이가 있다.</li>
+<li>예를 들어 1바이트를 사용하는 <code>char</code>형에서는 차이가 없지만, 2바이트 또는 4바이트를 사용하는 <code>short int</code>형 또는 <code>long int</code>형에서는 차이가 있다.</li>
+</ul>
+<h3 id="빅-엔디언-방식"><a class="header" href="#빅-엔디언-방식">빅 엔디언 방식</a></h3>
+<ul>
+<li>보통 운영체제에서 어떤 정보를 메모리에 저장할 때 메모리 주소가 낮은 쪽에서 높은 쪽으로 진행한다.</li>
+<li>따라서 시작 주소가 끝 주소보다 작은 것이 일반적이다.</li>
+<li>0x12345678 값을 4바이트 메모리에 저장할 때 빅 엔디언 방식(Big-endian Format)은 큰 자릿수(변수의 상위 바이트)의 값부터 저장한다.</li>
+<li>즉 시작 주소에 해당하는 바이트에 0x12, 그 다음 바이트에 0x34와 0x56, 그리고 마지막 바이트에 0x78을 저장한다.</li>
+</ul>
+<p><img src="./images/big_endian_format.png" alt="빅 엔디언 방식" /></p>
+<ul>
+<li>RISC 기반의 하드웨어에서 동작하도록 만든 유닉스(Unix)와 유닉스를 모델로 만든 리눅스(Linux)는 이 방식으로 바이트를 정렬한다.</li>
+<li>예외적으로 하드웨어 기반과 상관없이 JAVA같은 언어는 무조건 빅 엔디언 방식을 사용한다.</li>
+<li>이것은 Java VM(Virtual Machine)이라는 시스템에서 하드웨어와 상관없이 메모리를 재배열하기 때문이다.</li>
+</ul>
+<h3 id="리틀-엔디언-방식"><a class="header" href="#리틀-엔디언-방식">리틀 엔디언 방식</a></h3>
+<ul>
+<li>리틀 엔디언 방식(Little-endian Format)방식은 0x12345678 값을 4바이트 메모리에 저장할 때 작은 자릿수(변수의 하위 바이트)의 값부터 저장하기 때문에 시작 주소에 해당하는 바이트에
+0x78, 그 다음 바이트에 0x56과 0x34, 그리고 마지막 바이트에 0x12를 저장하는 방식이다.</li>
+</ul>
+<p><img src="./images/little_endian_format.png" alt="리틀 엔디언 방식" /></p>
+<ul>
+<li>CISC 기반의 하드웨어에서 동작하도록 만든 윈도우 운영체제는 이 방식으로 바이트를 정렬한다.</li>
+<li>이렇듯 메모리 정렬 방식이 다른 운영체제에서 2바이트 이상의 메모리를 사용할 때는 바이트 단위로 저장되는 값 자체가 달라지기 때문에, 네트워크 시스템을 이용하여 데이터를 주고 받을 때 특히 주의해야 한다.</li>
+</ul>
+<h2 id="tip-5-형-변환-자료형이-다른-두-변수-간에-값을-대입하려면"><a class="header" href="#tip-5-형-변환-자료형이-다른-두-변수-간에-값을-대입하려면">Tip 5. 형 변환: 자료형이 다른 두 변수 간에 값을 대입하려면?</a></h2>
+<ul>
+<li>소스 코드를 작성하다 보면 자료형이 다른 두 변수 간에 값을 대입하는 경우가 있다.</li>
+</ul>
+<pre><code class="language-c">unsigned int a = 0x12345678, b = 0x12345678;
+unsigned char c = 0x48, d = 0x00;
+a = c;  // 4바이트에 1바이트 데이터를 저장함
+d = b;  // 1바이트에 4바이트 데이터를 저장함. 컴파일하면 경고 발생함
+</code></pre>
+<ul>
+<li>작은 크기의 데이터를 더 큰 크기의 메모리로 데이터를 저장하는 것은 문제가 발생하지 않는다.</li>
+<li>하지만 큰 크기의 데이터를 자신보다 작은 크기의 메모리로 복사하면 데이터가 손실될 수 있다는 경고가 발생한다.</li>
+<li>만약 프로그래머가 의도적으로 저런 코드를 사용했다면 형 변환(Casting) 연산자를 사용하여 경고를 제거할 수 있다.</li>
+</ul>
+<pre><code class="language-c">unsigned int b = 0x12345678;
+unsigned char d = 0x00;
+d = (unsigned char) b;  // 변수 b의 자료형을 unsigned int에서 일시적으로 unsigned char로 변환함
+</code></pre>
+<ul>
+<li>대입 명령을 처리할 때만 <code>b</code>변수의 자료형을 일시적으로 <code>unsigned char</code>형으로 바꾸어 주기 때문에, 그 이후 코드부터는 다시 <code>unsigned int</code>크기로 <code>b</code>변수를 사용한다.</li>
+<li>다음과 같이 자신이 데이터를 원하는 크기만큼 복사하는 것도 가능하다.</li>
+</ul>
+<pre><code class="language-c">unsigned int a = 0x12345678, b = 0x11223344, c = 0x11223344;
+b = (unsigned short int) a; // a의 2바이트만 b로 복사함
+c = (unsigned char) a;      // a의 1바이트만 c로 복사함
+</code></pre>
+<ul>
+<li>결과적으로 형 변환 연산자를 사용하면 원하는 크기만큼 정보를 복사할 수 있지만, 복사되는 변수는 메모리가 확장되어 전체 값이 변경된다는 점에 주의하자.</li>
+</ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="tip2-주니어-프로그래머-딱지-떼는-일곱-가지-팁"><a class="header" href="#tip2-주니어-프로그래머-딱지-떼는-일곱-가지-팁">Tip2. 주니어 프로그래머 딱지 떼는 일곱 가지 팁!</a></h1>
 
                     </main>
