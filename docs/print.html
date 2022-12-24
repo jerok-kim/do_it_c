@@ -1855,31 +1855,17 @@ void main() {
 <pre><code class="language-c">data &gt; 3 &amp;&amp; data++;
 </code></pre>
 <ul>
-<li><code>data</code>값이 3보다 큰 경우
-&gt;</li>
-</ul>
-</blockquote>
+<li><code>data</code>값이 3보다 큰 경우:
 <ul>
 <li>이 수식은 <code>data</code>가 3보다 큰 값을 가지면 A 연산(<code>data &gt; 3</code>)이 참이 된다.</li>
-</ul>
-<blockquote>
-<ul>
-<li>따라서 B 연산(<code>data++</code>)이 참인지 거짓인지에 따라 논리 연산자의 결과 값이 달라지기 때문에 <code>data++</code>연산이 무조건 수행된다.
-<ul>
+<li>따라서 B 연산(<code>data++</code>)이 참인지 거짓인지에 따라 논리 연산자의 결과 값이 달라지기 때문에 <code>data++</code>연산이 무조건 수행된다.</li>
 <li>즉 <code>data</code>가 5일 때 위 명령문을 수행하고 나면 <code>data</code>는 6이 된다.</li>
 </ul>
 </li>
-<li><code>data</code>값이 3보다 작거나 같은 경우
-&gt;</li>
-</ul>
-</blockquote>
+<li><code>data</code>값이 3보다 작거나 같은 경우:
 <ul>
 <li>반대로 <code>data</code>가 3보다 작거나 같다면 A 연산이 거짓이 되어 B 연산을 확인해보지 않아도 결과 값은 거짓이 된다.</li>
-</ul>
-<blockquote>
-<ul>
-<li>따라서 <code>data++</code>는 수행되지 않는다.
-<ul>
+<li>따라서 <code>data++</code>는 수행되지 않는다.</li>
 <li>즉 <code>data</code>가 2일 때 위 명령문을 수행하고 나면 <code>data</code>는 여전히 2이다.</li>
 </ul>
 </li>
@@ -1887,30 +1873,19 @@ void main() {
 <pre><code class="language-c">data &gt; 3 || data++;
 </code></pre>
 <ul>
-<li><code>data</code>값이 3보다 큰 경우
-&gt;</li>
-</ul>
-</blockquote>
+<li><code>data</code>값이 3보다 큰 경우:
 <ul>
 <li>이 수식은 <code>data</code>가 3보다 큰 값을 가지면 A 연산(<code>data &gt; 3</code>)이 참이 되어 B 연산(<code>data++</code>)을 확인해보지 않아도 결과 값이 참이 된다.</li>
-</ul>
-<blockquote>
-<ul>
-<li>따라서 <code>data++</code>는 수행되지 않는다.
-<ul>
+<li>따라서 <code>data++</code>는 수행되지 않는다.</li>
 <li>즉 <code>data</code>가 5일 때 위 명령문을 수행하고 나면 <code>data</code>는 여전히 5이다.</li>
 </ul>
 </li>
-<li><code>data</code>값이 3보다 작거나 같은 경우
-&gt;</li>
-</ul>
-</blockquote>
+<li><code>data</code>값이 3보다 작거나 같은 경우:
 <ul>
 <li>반대로 <code>data</code>가 3보다 작거나 같다면 A 연산이 거짓이 되어 B 연산이 참인지 거짓인지에 따라 논리 연산자의 결과 값이 달라지기 때문에 <code>data++</code>연산이 수행된다.</li>
-</ul>
-<blockquote>
-<ul>
 <li>즉 <code>data</code>가 2일 때 위 명령문을 수행하고 나면 <code>data</code>는 3이 된다.</li>
+</ul>
+</li>
 </ul>
 </blockquote>
 <h2 id="7-2-연산자-우선순위와-연산-방향"><a class="header" href="#7-2-연산자-우선순위와-연산-방향">7-2. 연산자 우선순위와 연산 방향</a></h2>
@@ -5119,6 +5094,10 @@ char *p = (char *) &amp;data;  // 서로 자료형이 맞지 않아서 (char *)�
 </code></pre>
 </blockquote>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="14-표준-입력-함수"><a class="header" href="#14-표준-입력-함수">14. 표준 입력 함수</a></h1>
+<h2 id="표준-입력-함수란"><a class="header" href="#표준-입력-함수란">표준 입력 함수란?</a></h2>
+<ul>
+<li></li>
+</ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="15-배열과-포인터"><a class="header" href="#15-배열과-포인터">15. 배열과 포인터</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="16-메모리-할당"><a class="header" href="#16-메모리-할당">16. 메모리 할당</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="17-다차원-포인터"><a class="header" href="#17-다차원-포인터">17. 다차원 포인터</a></h1>
