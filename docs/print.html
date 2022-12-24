@@ -4384,7 +4384,740 @@ birthday = 0x0412;  // mov word ptr[00000066h], 0412h 로 번역함
 </code></pre>
 <ul>
 <li>C 언어는 왜 어셈블리어나 기계어처럼 주소를 직접 사용하지 않고 변수라는 개념을 사용할까?</li>
+<li>메모리에 정보를 저장할 때 어셈블리어처럼 메모리 주소를 직접 표기하는 것보다 전체 코드를 더 쉽게 이해할 수 있게 된다.</li>
+<li>또한 변수 이름을 잘 정하면 정보를 잘못 대입하는 실수도 줄어들게 된다.</li>
 </ul>
+<h3 id="c-언어에서-직접-주소-지정-방식의-한계"><a class="header" href="#c-언어에서-직접-주소-지정-방식의-한계">C 언어에서 직접 주소 지정 방식의 한계</a></h3>
+<ul>
+<li>C 언어는 직접 주소 지정 방식을 변수 문법으로 사용하기 때문에 사용에 한계가 있다.</li>
+<li>왜냐하면 함수 안에 선언한 변수는 해당 함수에서만 사용할 수 있고, 다른 함수에 선언한 변수가 메모리에 존재해도 문법적으로 접근할 수 없기 때문이다.</li>
+</ul>
+<p><img src="./images/memory_diagram_5.png" alt="직접 주소 지정 방식의 한계" /></p>
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+
+void Test() {
+    short soft = 0x0000;
+    soft = tips;  // 오류
+}
+
+void main() {
+    short tips = 0x0005;
+    Test();
+}
+</code></pre>
+<ul>
+<li>위 코드는 <code>main</code>, <code>Test</code>함수로 구성되어 있고 <code>main</code>함수가 <code>Test</code>함수를 호출하는 구조로 되어 있다.</li>
+<li><code>Test</code>함수가 호출되면 <code>main</code>함수의 <code>tips</code>변수와 <code>Test</code>함수의 <code>soft</code>변수가 메모리에 위치한다.</li>
+<li>하지만 <code>Test</code>함수에서 <code>tips</code>변수를 사용하려면 오류가 난다.</li>
+<li>각 함수의 지역 변수는 해당 함수 안에서만 사용 가능하기 때문이다.</li>
+<li>즉 <code>tips</code>변수는 <code>main</code>함수에서만 사용할 수 있고 <code>soft</code>변수는 <code>Test</code>함수에서만 사용할 수 있다.</li>
+<li>이렇게 C 언어의 직접 주소 지정 방식은 변수 개념을 사용하기 때문에 문법 구조상 서로 다른 함수에 존재하는 변수를 참조할 수 없다.</li>
+<li>그렇다고 지역 변수 간에 값을 전달하지 못하는 것은 아니다.</li>
+<li>함수의 매개변수와 반환값을 이용하면 약간의 절차는 거치겠지만 서로 다른 함수에 존재하는 지역 변수들 간에 값을 주고받을 수 있다.</li>
+<li>다음과 같이 메모리 주소를 사용하여 수정하면 <code>main</code>함수에 선언한 <code>tips</code>변수의 값을 <code>Test</code>함수의 <code>soft</code>변수에 오류 없이 대입할 수 있다.</li>
+</ul>
+<p><img src="./images/memory_diagram_6.png" alt="메모리 주소를 사용하여 수정" /></p>
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+
+void Test(short data) {
+    short soft = 0x0000;
+    soft = data;
+}
+
+void main() {
+    short tips = 0x0005;
+    Test(tips);
+}
+</code></pre>
+<h3 id="간접-주소-지정-방식"><a class="header" href="#간접-주소-지정-방식">간접 주소 지정 방식</a></h3>
+<ul>
+<li>직접 주소 지정 방식은 주소를 직접 명시한다.</li>
+<li>간접 주소 지정 방식은 메모리를 매개체로 이용해 주소를 간접적으로 명시한다.</li>
+<li>이 메모리는 주소를 저장하기 위해 크기를 4바이트로 고정해야 한다.</li>
+<li>왜냐하면 32비트 운영체제는 주소를 32비트(4바이트)로 표현하기 때문이다.</li>
+</ul>
+<pre><code class="language-text">102번지에 4바이트 크기의 '주소'가 저장되어 있는데
+이 주소에 가서 '값' 1042를 2바이트 크기로 대입하라.
+</code></pre>
+<ul>
+<li>102번지에는 값을 저장할 메모리 주소인 108이 적혀있고, 1042값은 108번지에 2바이트 크기로 저장된다.</li>
+<li>결국 간접 지정 방식을 사용하면 1042값을 저장할 실제 메모리 주소는 명령에 적지 않아도 된다.</li>
+</ul>
+<p><img src="./images/memory_diagram_7.png" alt="간접 주소 지정 방식" /></p>
+<ul>
+<li>이렇게 간접 주소 지정 방식을 사용하면 1042값이 108번지가 아니라 120번지로 변경되더라도 명령을 바꾸지 않아도 된다.</li>
+<li>왜냐하면 102번지에 저장되어 있는 주소를 108번지에서 120번지로 바꾸면 되기 때문이다.</li>
+<li>명령을 바꾼다는 뜻은 기계어를 바꿔야 한다는 뜻이고 이것은 코드를 다시 번역해서 실행 파일을 만들어야 한다는 뜻이다.</li>
+<li>하지만 메모리에 있는 주소를 변경하는 것은 단순한 데이터 조작이기 때문에 코드를 다시 번역할 필요가 없고 프로그램이 실행되는 중에도 변경할 수 있다.</li>
+<li>그래서 프로그래머 입장에서는 좀 더 복잡하더라도 간접 주소 지정 방식을 활용하는 것이 좋다.</li>
+</ul>
+<p><img src="./images/memory_diagram_8.png" alt="간접 주소 지정 방식" /></p>
+<ul>
+<li>위 그림처럼 바이트 단위까지 정확하게 표시해야 나중에 포인터의 다양한 기능을 정확하게 이해할 수 있다.</li>
+<li>위 그림을 의미하는 간접 주소 지정 방식 명령은 다음과 같다.</li>
+</ul>
+<pre><code class="language-text">0x00000066번지에 4바이트 크기의 '주소'가 저장되어 있는데
+이 주소에 가서 '값' 0x0412를 2바이트 크기로 대입하라.
+</code></pre>
+<blockquote>
+<h4 id="간접-주소-지정-방식을-어셈블리어로-표현해-보자"><a class="header" href="#간접-주소-지정-방식을-어셈블리어로-표현해-보자">간접 주소 지정 방식을 어셈블리어로 표현해 보자.</a></h4>
+<ul>
+<li>포인터 문법을 사용할 때 실제로 번역되는 코드를 보면 포인터에 대해 더 명확하게 이해할 수 있다.</li>
+</ul>
+<pre><code class="language-text">명령          A(대상)             B(원본)
+mov          cx,                dword ptf[0000006Ch]
+mov          word ptr[cx],      0412h
+</code></pre>
+<ul>
+<li>직접 주소 지정 방식에서는 하나의 <code>mov</code>명령을 사용했지만 간접 주소 지정 방식에서는 두 개의 <code>mov</code>명령을 사용한다.</li>
+<li>사물함에 해당하는 메모리에서 주소를 읽는 것이 첫 <code>mov</code>명령에 해당하고 <code>0x0412</code>값을 사물함에 들어 있는 주소에 저장하는 것이 두 번째 <code>mov</code>명령에 해당한다.</li>
+<li>이렇게 명령을 나누어서 처리하는 이유는 CPU가 하나의 명령으로 메모리에서 메모리로 값을 복사할 수 없기 때문이다.</li>
+<li>CPU내부에 있는 CX 레지스터에 <code>0x0412</code>를 저장할 주소(사물함에 들어 있는 주소)를 옮기고 CX 레지스터에 저장된 메모리 주소에 가서 <code>0x0412</code>를 저장해야 한다.</li>
+<li>첫 번째 <code>mov</code>명령의 <code>dword</code>는 double word의 줄임 표현이며 4바이트를 의미하고, 사물함에 해당하는 메모리에 주소가 4바이트 크기로 저장되기 때문에 4바이트 크기로 읽기 위해 <code>dword</code>를
+사용한 것이다.</li>
+<li>두 번째 <code>mov</code>명령에서 <code>word</code>를 사용한 이유는 <code>0x0412</code>값이 2바이트 크기로 메모리에 저장되어야 하기 때문이다.</li>
+</ul>
+</blockquote>
+<h2 id="13-2-포인터"><a class="header" href="#13-2-포인터">13-2. 포인터</a></h2>
+<h3 id="포인터란"><a class="header" href="#포인터란">포인터란?</a></h3>
+<ul>
+<li>C 언어에서 직접 주소 지정 방식은 변수 문법이다.</li>
+<li>그러면 간접 주소 지정 방식은 C 언어에서 어떻게 표현할까?</li>
+<li>4바이트 정수형으로 <code>addr</code>변수를 선언하고 <code>addr</code>변수에 <code>0x0000006C</code>값(<code>0x0412</code>를 저장할 주소, 108번지)을 대입해 보자</li>
+</ul>
+<pre><code class="language-c">unsigned int addr = 0x0000006C;
+</code></pre>
+<ul>
+<li><code>unsigned int</code>자료형을 사용한 이유는, 주소는 음수가 나올 수 없기 때문이다.</li>
+<li>이렇게 선언한 <code>addr</code>변수에 주소를 저장할 수는 있다.</li>
+<li>하지만 일반 변수라서 실제로 해당하는 주소의 메모리에 가서 값을 읽거나 저장할 수 있는 기능이 없다.</li>
+<li>이것은 C 언어의 일반 변수가 자신이 위치한 메모리에서만 값을 읽거나 쓸 수 있는 직접 주소 지정 방식으로 동작하기 때문이다.</li>
+<li>그래서 C 언어는 간접 주소 지정 방식으로 동작하는 특별한 변수를 선언하기 위해 포인터(Pointer)문법을 추가로 제공한다.</li>
+<li>포인터 문법을 사용해 선언한 포인터 변수는 메모리 주소만을 저장하기 위해 탄생한 특별한 변수이다.</li>
+<li>앞에서 사물함에 비유했던 메모리가 C 언어에서는 포인터 변수이다.</li>
+<li>즉 자신이 사용하고 싶은 메모리의 '주소'를 저장하고 있는 메모리가 포인터이다.</li>
+<li>포인터 변수는 일반 변수와 다르게 <code>*</code>기호를 추가로 사용하여 다음과 같이 선언한다.</li>
+</ul>
+<p><img src="./images/pointer_1.png" alt="포인터" /></p>
+<ul>
+<li><code>ptr</code>은 포인터 변수의 이름이고 이 변수가 포인터라는 것을 번역기에게 알려주기 위해 <code>ptr</code>앞에 <code>*</code>를 사용한다.</li>
+<li>그리고 자료형을 적는 위치에 <code>short</code>를 사용했다.</li>
+<li>그럼 포인터 변수 <code>ptr</code>의 크기가 2바이트일까? No...</li>
+<li>일반 변수는 자료형이 변수의 크기를 의미하지만, 포인터 변수는 자료형을 선언하지 않아도 무조건 크기가 4바이트(32비트 운영체제 기준, 주소의 크기가 4바이트)로 정해져 있기 때문에 포인터 변수의 크기를 적을
+필요가 없다.</li>
+<li>그렇다면 <code>*</code>앞의 자료형은 무엇을 의미할까?</li>
+<li><code>short</code>는 <code>ptr</code>변수에 저장된 주소에 저장될 값의 자료형을 의미한다.</li>
+</ul>
+<p><img src="./images/pointer_2.png" alt="포인터" /></p>
+<ul>
+<li>앞에서 간접 주소 지정 방식을 설명하면서 사용한 메모리 그림에 포인터 변수 <code>ptr</code>를 적용해 보면 위와 같다.</li>
+</ul>
+<h3 id="변수가-저장된-메모리-공간의-주소-얻기"><a class="header" href="#변수가-저장된-메모리-공간의-주소-얻기">변수가 저장된 메모리 공간의 주소 얻기</a></h3>
+<ul>
+<li>프로그램은 실행될 때마다 사용할 메모리 공간의 주소가 달라진다.</li>
+<li>따라서 프로그램에 선언된 변수의 주소는 프로그램이 실행될 때마다 다른 주소에 할당된다.</li>
+<li>예를 들어 <code>a</code>변수가 지금 100번지에 할당되어 있어도 다음번 실행할 때는 200번지에 할당될 수도 있다는 뜻이다.</li>
+<li>그래서 '포인터가 가리키는 대상'의 주소를 직접 입력하여 항상 같은 주소를 사용하게 하면 대부분 오류가 발생하게 된다.</li>
+<li>따라서 주소를 직접 입력하는 것보다 프로그램 안에 선언한 다른 변수의 주소를 받아와서 사용하는 것이 안전하다.</li>
+<li>변수는 해당 프로그램의 메모리 영역에 만들어지기 때문에 다른 프로그램의 메모리 영역에 잘못 접근할 일이 없다.</li>
+<li>변수의 주소는 변수 앞에 '<code>&amp;</code>연산자'를 사용하여 구할 수 있다.</li>
+</ul>
+<pre><code class="language-c">short birthday;   // short형 변수 birthday를 선언함
+short *ptr;       // 포인터 변수 선언함
+ptr = &amp;birthday;  // birthday 변수의 주소를 ptr변수에 대입함
+</code></pre>
+<p><img src="./images/pointer_3.png" alt="포인터" /></p>
+<ul>
+<li>변수가 위치한 메모리의 주소를 출력해 보는 예제를 코딩해 보자.</li>
+</ul>
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+
+void main() {
+    short birthday;
+    short *ptr;  // 포인터 변수 선언함
+    ptr = &amp;birthday;  // birthday 변수의 주소를 ptr 변수에 대입함
+
+    // %p 형식은 메모리 주소를 16진수 형식으로 출력함
+    printf(&quot;birthday 변수의 주소는 %p, %08X, %16X입니다.\n&quot;, ptr, ptr, ptr);
+}
+</code></pre>
+<pre><code class="language-text">birthday 변수의 주소는 00000031d65ffd26, D65FFD26,         D65FFD26입니다.
+</code></pre>
+<ul>
+<li>64비트 운영체제라서 주소가 16자리로 출력된다.</li>
+</ul>
+<h3 id="-키워드의-또-다른-이름-번지-지정-연산자"><a class="header" href="#-키워드의-또-다른-이름-번지-지정-연산자">* 키워드의 또 다른 이름, 번지 지정 연산자</a></h3>
+<ul>
+<li>C 언어에서 <code>*</code>키워드는 여러 가지 용도로 쓰기 때문에 각각의 용도를 잘 기억해야 한다.</li>
+</ul>
+<pre><code class="language-c">short birthday;   // short형 변수 birthday를 선언함
+short *ptr;       // 포인터가 가리키는 대상의 크기가 2바이트인 포인터 변수를 선언함
+ptr = &amp;birthday;  // birthday 변수의 주소를 ptr 변수에 대입함(주소는 108번지라고 가정함)
+*ptr = 1042;      // ptr에 저장된 주소에 가서 값 1042를 대입함. 즉 birthday = 1042
+</code></pre>
+<p><img src="./images/pointer_4.png" alt="포인터" /></p>
+<ul>
+<li>위 코드에서 <code>short *ptr;</code>와 <code>ptr = &amp;birthday;</code>는 <code>short *ptr = &amp;birthday;</code>라고 줄여서 적을 수 있다.</li>
+<li>여기에서 주의할 점은 <code>short *ptr = &amp;birthday;</code>가 값을 대입하는 형태와 비슷해서 <code>*</code>키워드를 <code>*ptr = 1042;</code>에서 번지를 지정하기 위해 사용한 <code>*</code>연산자와 같다고 착각해서는
+안된다.</li>
+<li><code>short *ptr = &amp;birthday;</code>에서 <code>*</code>키워드는 포인터 변수를 선언하기 위해 사용한 것이고 <code>*ptr = 1042;</code>의 <code>*</code>연산자는 <code>ptr</code>포인터가 가리키는 주소의 변수(대상)에
+가서 <code>1042</code>(0x0412)값을 대입하겠다는 의미이다.</li>
+</ul>
+<pre><code class="language-c">short *ptr = &amp;birthday;  // 여기서의 *는 포인터 변수를 선언하기 위해 사용하는 키워드
+*ptr = 1042;  // 여기서의 *는 번지 지정 연산자. ptr 포인터가 가리키는 대상에 가서 1042값을 대입하겠다는 의미
+</code></pre>
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+
+void main() {
+    short birthday;
+    short *ptr;
+    ptr = &amp;birthday;  // birthday 변수의 주소를 ptr 변수에 대입함
+    *ptr = 0x0412;  // birthday = 0x0412;와 같은 결과
+
+    printf(&quot;birthday = %d (0x%04X)\n&quot;, birthday, birthday);
+}
+</code></pre>
+<pre><code class="language-text">birthday = 1042 (0x0412)
+</code></pre>
+<ul>
+<li><code>%04X</code>는 <code>birthday</code>변수에 저장되는 값을 16진수 형태로 출력해서 보여주기 위한 키워드이다.</li>
+<li>전체 자릿수가 4자리를 차지하도록 출력하는데, 숫자가 4자리를 채우지 못하는 경우에는 빈자리에 0을 채운다.</li>
+<li>위 예제에서 <code>birthday</code>변수는 선언 후 직접 사용된 적이 없지만, <code>ptr</code>포인터 변수에 의해 간접적으로 값 <code>0x0412</code>가 대입되었다.</li>
+<li><code>printf</code>로 <code>birthday</code>값을 출력해 보면 10진수로는 1042가 출력되고 16진수로는 0x0412가 출력된다.</li>
+</ul>
+<h3 id="ptr--과-ptr--의-차이점"><a class="header" href="#ptr--과-ptr--의-차이점">'ptr = '과 '*ptr = '의 차이점</a></h3>
+<ul>
+<li>포인터 문법은 두 개의 메모리 공간과 관련이 있다.</li>
+<li>'포인터 변수가 저장된 메모리'와 '포인터가 가리키는 대상 메모리'이다.</li>
+<li><code>ptr = </code>형태로 사용하면 포인터 변수의 값(가리키는 대상의 주소)이 변경되고 <code>*</code>(번지 지정)연산자를 붙여서 <code>*ptr = </code>형태로 사용하면 '포인터가 가리키는 대상'의 값이 변경된다.</li>
+</ul>
+<h4 id="ptr---형태는-포인터-변수에-주소를-저장한다"><a class="header" href="#ptr---형태는-포인터-변수에-주소를-저장한다">'ptr = ' 형태는 포인터 변수에 주소를 저장한다</a></h4>
+<ul>
+<li>포인터 변수도 일반 변수처럼 자신을 위한 메모리 공간이 있다.</li>
+<li>일반 변수와 차이가 있다면 포인터 변수는 주소를 저장하기 때문에 메모리 크기가 4바이트로 고정된다는 것이다.</li>
+<li>포인터 변수에 저장된 주소는 '포인터가 가리키는 대상 메모리'의 시작 주소를 의미한다.</li>
+<li><code>ptr = </code>형태를 사용해서 주소를 직접 대입하는 방법은 다음과 같다.</li>
+</ul>
+<pre><code class="language-c">short *ptr;
+ptr = (short *)0x0000006C;  // 포인터 변수 ptr에 주소를 직접 대입한다
+</code></pre>
+<ul>
+<li><code>int</code>형 데이터가 저장되는 메모리는 <code>short *</code>형 포인터 변수가 저장된 메모리와 4바이트로 크기는 같다.</li>
+<li>하지만 컴파일러는 크기를 가지고 자료형이 같다고 판단하지 않기 때문에 <code>int</code>형 정수 값 <code>0x0000006C</code>를 <code>ptr</code>변수에 맞는 자료형으로 변환하여 대입해야 한다.</li>
+<li>따라서 <code>0x0000006C</code>를 <code>short *</code>형으로 형 변환한다.</li>
+<li>위 코드처럼 포인터 변수 <code>ptr</code>를 선언하고 <code>0x0000006C</code>의 주소를 대입하면 <code>ptr</code>포인터 변수가 차지하고 있는 4바이트 메모리 공간에 <code>0x0000006C</code>값이 저장된다.</li>
+<li>그러면 이제 포인터 변수 <code>ptr</code>은 <code>0x0000006C</code>번지를 가리키게 되어 <code>0x0000006C</code>번지에서 값을 읽거나 쓸 수 있다.</li>
+<li>변수의 실제 메모리 주소는 <code>&amp;</code>연산자로 얻을 수 있다.</li>
+</ul>
+<h4 id="ptr---형태는-포인터가-가리키는-대상에-값을-저장한다"><a class="header" href="#ptr---형태는-포인터가-가리키는-대상에-값을-저장한다">'*ptr = ' 형태는 포인터가 가리키는 대상에 값을 저장한다</a></h4>
+<ul>
+<li>포인터 문법과 관련된 두 번째 메모리 공간인 '포인터가 가리키는 대상'의 값을 다루는 방법에 대해 알아보자.</li>
+<li>'포인터가 가리키는 대상'을 사용하려면 당연히 포인터 변수에 대상의 주소가 먼저 저장되어야 하기 때문에 앞에서 설명한 방법으로 <code>ptr</code>변수에 값 <code>0x0000006C</code>를 넣었다고 가정한다.</li>
+<li>앞에서 포인터 변수에 주소를 대입할 때는 일반 변수처럼 <code>ptr = </code>이라고 사용했지만 '포인터가 가리키는 대상'의 값을 변경할 때는 <code>ptr</code>변수 앞에 <code>*</code>(번지 지정)연산자를 추가하여 <code>*ptr = </code>이라고
+사용해야 한다.</li>
+</ul>
+<pre><code class="language-c">short *ptr;
+ptr = (short *)0x0000006C;  // ptr 변수에 0x0000006C 값을 대입함
+*ptr = 0x0412;  // 0x0000006C 번지에 0x0412 값을 대입함
+</code></pre>
+<ul>
+<li>위 코드처럼 <code>*ptr = 0x0412;</code>라고 하면 <code>ptr</code>변수가 저장하고 있는 주소(0x0000006C)에 가서 2바이트 크기로 값 0x0412를 대입하라는 뜻이다.</li>
+<li>지금까지는 설명을 위해서 주소를 저장하는 메모리 <code>ptr</code>에 <code>0x0000006C</code>를 넣어서 사용했지만, 실제로는 이렇게 코드를 구성할 수 없다.</li>
+<li>왜냐하면 자신의 프로그램이 어떤 주소 영역에 할당될지 예측할 수 없기 때문이다.</li>
+<li>이렇게 고정 주소를 사용하면 자신의 프로그램 영역이 아닌 다른 프로그램의 메모리 영역에 접근을 시도할 것이고, 이런 동작은 잘못된 접근으로 처리되어 오류가 발생할 것이다.</li>
+</ul>
+<blockquote>
+<h4 id="고정-주소를-직접-표기할-수는-없을까"><a class="header" href="#고정-주소를-직접-표기할-수는-없을까">고정 주소를 직접 표기할 수는 없을까?</a></h4>
+<ul>
+<li><code>0x0000006C</code>처럼 주소를 직접 표기하는 것 자체가 잘못된 것은 아니다.</li>
+<li>유효한 주소라면 직접 표기해도 된다.</li>
+<li>그런데 유효한 주소는 따로 정해져 있는 것이 아니라 프로그래머가 판단하는 것이다.</li>
+<li>실력이 많이 쌓여서 메모리 주소를 사용하는 데 익숙해지면, 자신이 사용하는 메모리 영역의 주소를 알아내서 수학적 계산을 통해 사용할 주소를 직접 계산할 수도 있다.</li>
+</ul>
+</blockquote>
+<h3 id="다른-함수에-선언된-지역-변수-사용하기"><a class="header" href="#다른-함수에-선언된-지역-변수-사용하기">다른 함수에 선언된 지역 변수 사용하기</a></h3>
+<pre><code class="language-c">short birthday;   // short형 변수 birthday를 선언함
+short *ptr;       // 포인터가 가리키는 대상의 크기가 2바이트인 포인터 변수 선언함
+ptr = &amp;birthday;  // birthday 변수의 주소를 ptr 변수에 대입함
+*ptr = 0x0412;    // ptr에 저장된 주소에 가서 0x0412값을 대입함. birthday = 0x0412;
+</code></pre>
+<ul>
+<li>이렇게 포인터를 사용하여 간접 주소 방식으로 값을 대입하는 이유가 뭘까?</li>
+<li>그 이유는 모든 변수가 같은 함수에 선언되는 것이 아니기 때문이다.</li>
+<li>만약 <code>main</code>함수에서 <code>ptr</code>변수와 <code>birthday</code>변수를 함께 선언해서 사용하면 아무 문제가 생기지 않는다.</li>
+<li>그러나 이 두 변수를 서로 다른 함수에 선언했다면 상당한 의미를 갖는다.</li>
+<li>왜냐하면 일반 변수는 문법적으로 서로 다른 함수에 있는 변수를 사용할 수 없지만, 포인터는 변수 이름이 아니라 주소로 대상을 찾아가기 때문에 같은 함수가 아니더라도 대상 메모리의 값을 읽거나 쓸 수 있기
+때문이다.</li>
+</ul>
+<h4 id="직접-주소-지정-방식으로-다른-함수에-선언한-변수-사용하기"><a class="header" href="#직접-주소-지정-방식으로-다른-함수에-선언한-변수-사용하기">직접 주소 지정 방식으로 다른 함수에 선언한 변수 사용하기</a></h4>
+<blockquote>
+<p><code>A형 - 다른 함수의 변수 사용시 오류</code></p>
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+
+void Test() {
+    short soft = 0;
+    soft = tips;  // 오류 발생
+}
+
+void main() {
+    short tips = 5;
+    Test();
+}
+</code></pre>
+<p><code>B형 - 매개변수로 다른 함수의 변수 값 받기</code></p>
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+void Test(short data) {
+    short soft = 0;
+    soft = data;  // 가능, soft = 5;
+}
+
+void main() {
+    short tips = 5;
+    Test(tips);
+}
+</code></pre>
+</blockquote>
+<ul>
+<li>A형에서 <code>tips</code>변수는 <code>main</code>함수에서 선언된 변수이므로 <code>Test</code>함수에서 사용할 수 없다.</li>
+<li>그래서 B형에서는 오류 없이 <code>tips</code>변수 값을 <code>soft</code>에 대입하기 위해 매개변수를 사용한 것이다.</li>
+<li>하지만 B형 예제는 <code>main</code>함수의 <code>tips</code>변수 값을 넘겨받았을 뿐이기 때문에 <code>Test</code>함수에서 <code>main</code>함수의 <code>tips</code>변수 값을 직접 수정할 수는 없다.</li>
+<li>이것은 매개변수가 대상 변수의 주소가 아니라 변수가 가지고 있는 값(5)을 넘겨받았기 때문이다.</li>
+</ul>
+<h4 id="간접-주소-지정-방식포인터으로-다른-함수에-선언한-변수-사용하기"><a class="header" href="#간접-주소-지정-방식포인터으로-다른-함수에-선언한-변수-사용하기">간접 주소 지정 방식(포인터)으로 다른 함수에 선언한 변수 사용하기</a></h4>
+<ul>
+<li>C 언어에서 함수의 매개변수로 간접 주소 지정 방식(포인터 변수)을 사용할 수도 있다.</li>
+<li>다음 C형과 같이 간접 주소 지정 방식의 포인터로 <code>main</code>함수에 선언한 <code>tips</code>변수를 <code>Test</code>함수에서 사용할 수 있다.</li>
+</ul>
+<blockquote>
+<p><code>B형 - 매개변수로 다른 함수의 변수 값 받기</code></p>
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+
+void Test(short data) {
+    short soft = 0;
+    soft = data;  // 가능, soft = 5;
+    tips = 3;  // 오류 발생
+}
+
+void main() {
+    short tips = 5;
+    Test(tips);
+}
+</code></pre>
+<p><code>C형 - 매개변수로 다른 함수의 변수 주소 받기</code></p>
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+
+void Test(short *ptr) {
+    short soft = 0;
+    soft = *ptr;  // soft = tips;
+    *ptr = 3;  // tips = 3;
+}
+
+void main() {
+    short tips = 5;
+    Test(&amp;tips);
+}
+</code></pre>
+</blockquote>
+<ul>
+<li>C형은 B형과 달리 매개변수로 포인터 변수 <code>ptr</code>를 선언해서 <code>main</code>함수의 <code>tips</code>변수 주소를 받았다.</li>
+<li>따라서 <code>Test</code>함수에서 <code>tips</code>변수 이름은 사용할 수 없지만 <code>tips</code>변수의 주소를 <code>ptr</code>포인터가 가지고 있기 때문에 <code>*ptr</code>를 사용해서 해당 주소에 저장된 값을 가져오거나, 대입할 수 있다.</li>
+<li>결국 간접 주소 지정 방식을 사용하면 <code>Test</code>함수를 호출한 <code>main</code>함수에 선언된 변수의 값만 받아 오는 것이 아니라 해당 변수이 값을 변경할 수도 있다.</li>
+</ul>
+<h3 id="두-변수의-값-서로-바꾸기"><a class="header" href="#두-변수의-값-서로-바꾸기">두 변수의 값 서로 바꾸기</a></h3>
+<ul>
+<li>프로그래밍을 하다 보면 두 변수의 값을 서로 바꿔야 하는 경우가 생긴다.</li>
+<li>이런 경우 값을 임시로 보관하는 변수를 하나 더 추가해야 한다.</li>
+<li>이 변수의 이름을 <code>temp</code>라고 하자.</li>
+<li><code>start</code>와 <code>end</code>라는 변수의 값을 바꾸기 위해 <code>temp</code>변수를 추가하면 <code>end</code>값에 <code>start</code>값을 대입하기 전에 <code>temp</code>에 <code>end</code>값을 보관해서 값이 사라지는 것을 막을 수 있다.</li>
+</ul>
+<pre><code class="language-c">int start = 96, end = 5;
+int temp;
+if(start &gt; end) {
+    temp = end;
+    end = start;
+    start = temp;
+}
+</code></pre>
+<ul>
+<li><code>Swap</code>함수를 따로 분리해서 다시 코드를 작성해 보자.</li>
+</ul>
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+
+// temp 변수를 이용하여 a와 b의 값을 서로 바꾸는 함수
+void Swap(int a, int b) {
+    int temp = a;  // a = 96, b = 5
+    a = b;         // a = 5, b = 5
+    b = temp;      // a = 5, b = 96
+}
+
+void main() {
+    int start = 96, end = 5;
+
+    printf(&quot;before : start = %d, end = %d\n&quot;, start, end);
+    if (start &gt; end) {
+        Swap(start, end);  // start와 end의 값을 바꾸기 위해서 Swap 함수를 호출함
+    }
+    printf(&quot;after : start = %d, end = %d\n&quot;, start, end);
+}
+</code></pre>
+<pre><code class="language-text">before : start = 96, end = 5
+after : start = 96, end = 5  // 값이 바뀌지 않았다
+</code></pre>
+<ul>
+<li>예제의 실행 결과를 보면 기대와 달리 <code>start</code>와 <code>end</code>값이 변경되지 않았다.</li>
+<li>분명히 <code>start</code>값이 <code>end</code>값보다 크기 때문에 조건문이 만족하여 <code>Swap</code>함수가 호출되었다.</li>
+<li>그리고 <code>Swap</code>함수에서는 <code>start</code>, <code>end</code>변수 값을 매개변수 <code>a</code>, <code>b</code>로 전달받아서 <code>a</code>, <code>b</code>값을 서로 교환까지 했다.</li>
+<li>하지만 <code>main</code>함수의 <code>start</code>, <code>end</code>와 상관 없이 변경된 변수가 <code>a</code>, <code>b</code>라는 것이 이 예제의 문제점이다.</li>
+<li>그림으로 그려보자.</li>
+<li>사격형 한 칸은 4바이트를 의미한다.</li>
+</ul>
+<p><img src="./images/pointer_5.png" alt="변수 값 교환하기" /></p>
+<ul>
+<li>이 그림을 보면 <code>main</code>함수의 지역 변수인 <code>start</code>, <code>end</code>변수 값은 계속 96과 5로 유지되고 있다.</li>
+<li>결국 예제에서 사용한 방법으로는 <code>main</code>함수의 <code>start</code>, <code>end</code>값을 변경할 수 없기 때문에 다른 함수의 지역 변수 값을 변경할 수 있는 포인터 문법을 사용하여 이 문제를 해결해야 한다.</li>
+</ul>
+<h3 id="포인터를-이용해-두-변수-값-바꾸기"><a class="header" href="#포인터를-이용해-두-변수-값-바꾸기">포인터를 이용해 두 변수 값 바꾸기</a></h3>
+<ul>
+<li>이번에는 포인터 문법을 이용해서 값 대신 각 변수의 '주소'를 넘겨 이 문제를 해결해 보자.</li>
+<li><code>main</code>함수의 <code>start</code>, <code>end</code>변수 주소를 <code>Swap</code>함수로 전달하려면 <code>Swap</code>함수의 매개변수에는 포인터 변수가 와야 한다.</li>
+</ul>
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+
+// temp 변수를 이용하여 a와 b의 값을 서로 바꿈
+void Swap(int *pa, int *pb) {
+    int temp = *pa;  // *pa(start) = 96, *pb(end) = 5
+    *pa = *pb;       // *pa(start) = 5, *pb(end) = 5
+    *pb = temp;      // *pa(start) = 5, *pb(end) = 96
+}
+
+void main() {
+    int start = 96, end = 5;
+
+    printf(&quot;before : start = %d, end = %d\n&quot;, start, end);
+
+    if (start &gt; end) {
+        Swap(&amp;start, &amp;end);  // start와 end의 값을 바꾸기 위해서 Swap을 호출함
+    }
+    printf(&quot;before : start = %d, end = %d\n&quot;, start, end);
+}
+</code></pre>
+<pre><code class="language-text">before : start = 96, end = 5
+before : start = 5, end = 96
+</code></pre>
+<ul>
+<li><code>Swap</code>함수에서 <code>pa</code>, <code>pb</code>포인터를 <code>*pa</code>, <code>*pb</code>와 같이 사용하면 <code>pa</code>, <code>pb</code>포인터가 가리키는 대상 메모리인 <code>start</code>, <code>end</code>의 값을 변경할 수 있다.</li>
+<li>함수의 <code>return</code>키워드를 사용해서 함수의 작업 결과 값을 함수를 호출한 쪽으로 전달할 수는 있다.</li>
+<li>하지만 <code>return</code>은 한 번에 한 개의 값만 반환하고 지금처럼 두 값 <code>start</code>, <code>end</code>을 동시에 반환할 수 없기 때문에 <code>return</code>문을 사용하는 것보다 포인터를 사용하는 것이 더 효과적이다.</li>
+</ul>
+<p><img src="./images/pointer_6.png" alt="포인터를 이용해 두 변수 값 바꾸기" /></p>
+<ul>
+<li>이처럼 함수에 포인터 문법을 함께 사용하면 다른 함수에 선언한 지역 변수 값도 수정할 수 있다.</li>
+</ul>
+<h2 id="13-3-포인터와-const-키워드"><a class="header" href="#13-3-포인터와-const-키워드">13-3. 포인터와 const 키워드</a></h2>
+<h3 id="const-키워드로-주소-변경-실수-막기"><a class="header" href="#const-키워드로-주소-변경-실수-막기">const 키워드로 주소 변경 실수 막기</a></h3>
+<ul>
+<li><code>Swap</code>함수도 마찬가지겠지만 불린 쪽(피호출자)에서 부른 쪽(호출자)으로부터 전달받은 주소를 변경하는 경우는 거의 없다.</li>
+<li>즉 <code>pa</code>와 <code>pb</code>에 저장된 주소가 바뀔 이유가 없다는 뜻이다.</li>
+<li>따라서 주소를 바꾸는 코드가 있다면 이것은 프로그래머의 실수일 확률이 높기 때문에 <code>const</code>키워드를 이용하여 명시적으로 주소가 바뀌는 실수를 막을 수 있다.</li>
+</ul>
+<pre><code class="language-c">void Swap(int *const pa, int *const pb) {
+    int temp = *pa;
+    pa = pb;  // pa는 const 변수라서 값을 변경할 수 없기 때문에 오류가 발생함
+    *pb = temp;
+}
+</code></pre>
+<ul>
+<li>위 코드와 같이 <code>Swap</code>함수의 매개변수 형태를 변경하면 둘 다 <code>const</code>키워드에 의해 번역할 때 오류가 발생한다.</li>
+<li>그래서 실수로 <code>*</code>를 생략하는 경우에 좀 더 쉽게 문제점을 찾아낼 수 있다.</li>
+</ul>
+<h3 id="포인터-변수에서-const-키워드를-사용하는-여러-가지-방법"><a class="header" href="#포인터-변수에서-const-키워드를-사용하는-여러-가지-방법">포인터 변수에서 const 키워드를 사용하는 여러 가지 방법</a></h3>
+<ul>
+<li>포인터 변수는 일반 변수와 <code>const</code>키워드를 사용하는 위치가 좀 다르다.</li>
+<li>왜냐하면 포인터 변수는 포인터 변수에 저장된 값을 변경하거나 포인터 변수가 가리키는 대상의 값을 변경하는 두 가지 형태로 사용할 수 있기 때문에 다음과 같이 <code>const</code>키워드를 사용할 수 있는 위치도 두
+곳이다.</li>
+</ul>
+<p><img src="./images/const_1.png" alt="const 키워드를 사용할 수 있는 위치" /></p>
+<ul>
+<li>이렇게 <code>const</code>키워드를 사용할 수 있는 위치가 두 곳이기 때문에, 이 위치를 조합하면 포인터 변수를 세 가지 방법으로 선언할 수 있다.</li>
+</ul>
+<h4 id="int-const-p"><a class="header" href="#int-const-p">int *const p;</a></h4>
+<ul>
+<li><code>p</code>앞에 <code>const</code>키워드를 사용했다.</li>
+<li>따라서 <code>p</code>가 가지고 있는 주소를 변경하면 번역할 때 오류가 발생한다.</li>
+</ul>
+<pre><code class="language-c">int data = 5, temp = 0;
+int *const p = &amp;data;  // 변수 p는 data 변수의 주소를 저장한다.
+                       // 포인터 변수를 선언할 때 한 번만 p에 주소 값을 대입할 수 있다.
+*p = 3;  // p 변수가 저장하고 있는 주소에 가서 3을 대입하면 data 변수의 값이 3으로 변경됨
+p = &amp;temp  // 오류 발생: 변수 p에 const 속성이 적용되어 p에 저장된 주소는 변경할 수 없음
+</code></pre>
+<h4 id="const-int-p"><a class="header" href="#const-int-p">const int *p;</a></h4>
+<ul>
+<li><code>p</code>가 주소에 접근할 때 사용하는 크기 앞에 <code>const</code>키워드를 사용했기 때문에 <code>*p</code>를 사용하여 대상의 값을 변경하면 번역할 때 오류가 발생한다.</li>
+</ul>
+<pre><code class="language-c">int data = 5;
+const int *p = &amp;data;  // 변수 p는 data 변수의 주소를 저장함
+*p = 3;  // 오류 발생: 변수 p가 가리키는 대상에 const 속성이 적용되어 대상의 값을 변경할 수 없음
+</code></pre>
+<h4 id="const-int-const-p"><a class="header" href="#const-int-const-p">const int *const p;</a></h4>
+<ul>
+<li>자신과 대상에 모두 <code>const</code>키워드를 사용했기 때문에 <code>p</code>가 가지고 있는 주소를 바꾸거나 <code>*p</code>를 사용하여 대상의 값을 바꾸면 번역할 때 오류가 발생한다.</li>
+</ul>
+<pre><code class="language-c">int data = 5, temp = 0;
+const int * const p = &amp;data;
+*p = 3;  // 오류 발생: 변수 p가 가리키는 대상에 const 속성이 적용되어 대상의 값을 변경할 수 없음
+p = &amp;temp;  // 오류 발생: 변수 p에 const 속성이 적용되어 p에 저장된 주소는 변경할 수 없음
+</code></pre>
+<ul>
+<li>결론적으로 일반 변수를 다룰 때보다 포인터 변수를 다룰 때 실수할 확률이 더 높기 때문에, <code>const</code>키워드를 적절하게 잘 활용하면 실수로 인한 버그(의미상 오류)를 줄일 수 있다.</li>
+</ul>
+<h2 id="13-4-포인터-변수의-주소-연산"><a class="header" href="#13-4-포인터-변수의-주소-연산">13-4. 포인터 변수의 주소 연산</a></h2>
+<h3 id="사용할-메모리의-범위를-기억하는-방법"><a class="header" href="#사용할-메모리의-범위를-기억하는-방법">사용할 메모리의 범위를 기억하는 방법</a></h3>
+<ul>
+<li>자신이 사용할 메모리의 범위를 기억하는 방법은 크게 두 가지이다.</li>
+<li>첫 번째 방법은 시작 주소와 끝 주소를 기억하는 것이고 두 번째 방법은 시작 주소와 사용할 크기를 기억하는 것이다.</li>
+</ul>
+<h4 id="시작-주소와-끝-주소로-메모리-범위-기억하기"><a class="header" href="#시작-주소와-끝-주소로-메모리-범위-기억하기">시작 주소와 끝 주소로 메모리 범위 기억하기</a></h4>
+<p><img src="./images/pointer_7.png" alt="시작 주소와 끝 주소로 메모리 범위 기억하기" /></p>
+<ul>
+<li>시작 주소와 끝 주소로 메모리 범위를 기억하려면 각각의 주소를 기억하는 데 총 8바이트가 필요하다.</li>
+<li>시작 주소인 100번지를 저장하는 데 4바이트가 필요하고 끝 주소인 103번지를 저장하는 데 또 4바이트가 필요하기 때문이다.</li>
+</ul>
+<h4 id="시작-주소와-사용할-크기로-메모리-범위-기억하기"><a class="header" href="#시작-주소와-사용할-크기로-메모리-범위-기억하기">시작 주소와 사용할 크기로 메모리 범위 기억하기</a></h4>
+<p><img src="./images/pointer_8.png" alt="시작 주소와 사용할 크기로 메모리 범위 기억하기" /></p>
+<ul>
+<li>'시작 주소'와 '사용할 크기'로 메모리 범위를 기억하는 것도 두 가지 정보를 기억해야 한다.</li>
+<li>시작 주소인 100번지를 저장하는 데 4바이트가 필요할 것이고, 사용할 크기를 저장하는 데 4바이트가 필요할 것이다.</li>
+<li>그런데 C 언어 문법은 메모리를 사용할 때 항상 그 메모리의 크기를 먼저 결정하도록 되어 있다.</li>
+<li>예를 들어 정수 값 5를 저장하고 싶다면 <code>int data;</code>와 같이 변수를 선언해야 하는데 이때 사용할 메모리의 크기는 <code>int</code>형으로 선언했기 때문에 4바이트로 결정된다.</li>
+<li>그리고 <code>data = 5;</code>명령을 사용하면 컴파일러는 <code>data</code>라는 변수가 4바이트라는 것을 이미 알고 있기 때문에 메모리에 4바이트 크기로 5를 대입하도록 명령을 구성하게 된다.</li>
+<li>결국 사용할 메모리 크기는 명령문에 포함되어 있기 때문에 자신이 사용할 메모리의 시작 주소만 기억하면 된다는 뜻이다.</li>
+<li>이런 프로그래밍 언어의 특성 때문에 포인터도 자신이 가리킬 대상에 대해 사용할 범위는 저장하지 않고 사용할 메모리의 시작 주소만 기억하면 된다.</li>
+</ul>
+<pre><code class="language-c">short data = 0;
+short *p = &amp;data;  // p 변수에 data 변수의 시작 주소를 저장한다
+*p = 5;  // 포인터 변수 p가 가리킬 대상의 크기는 short이기 때문에 p에 저장된
+         // 시작 주소부터 2바이트 크기의 공간에 값 5를 저장한다.
+</code></pre>
+<ul>
+<li>컴파일러가 <code>data = 5;</code>를 기계어로 번역하면 <code>mov dword ptr [0000006Ch], 5h</code>가 된다.</li>
+<li>여기서 <code>dword</code>명령을 통해 사용할 크기를 명시하는 것을 볼 수 있다.</li>
+<li>즉 컴파일러가 기계어 명령을 구성하는 단계에서 '사용할 메모리 크기'가 결정된다.</li>
+</ul>
+<h3 id="포인터-변수의-주요-연산"><a class="header" href="#포인터-변수의-주요-연산">포인터 변수의 주요 연산</a></h3>
+<ul>
+<li>포인터가 자신이 가리킬 대상 메모리의 시작 주소만 기억하면 되기 때문에 갖게 되는 특성이 있다.</li>
+</ul>
+<pre><code class="language-c">short data = 0;
+short *p = &amp;data;
+p = p + 1;  // 포인터 변수에 저장된 주소 값을 1만큼 증가시킴
+</code></pre>
+<ul>
+<li>포인터 변수에 저장된 주소도 정수 값이기 때문에 일반 변수처럼 연산할 수 있다.</li>
+<li>그런데 주소를 1만큼 증가시킨다는 의미가 일반 수학 연산과 다르기 때문에 주의해야 한다.</li>
+<li>포인터 변수 <code>p</code>에 저장된 주소가 100번지인 경우에 이 변수를 1만큼 증가시키면 변수에 저장되어 있던 주소 값은 101번지가 되는 게 아니라 102번지가 된다.</li>
+<li>왜냐하면 포인터에서 +1의 의미는 단순히 주소 값에 1을 더한다는 뜻이 아니고 그다음 데이터의 주소를 의미하기 때문이다.</li>
+<li>위 예시에서 포인터 변수 <code>p</code>가 가리키는 대상의 크기가 2바이트인데 이 포인터로 다음 데이터를 가리키려면 주소 값이 1이 아닌 2가 증가되어야 정상적으로 그다음 데이터를 가리킬 수 있다.</li>
+<li>이처럼 포인터 변수에 +1을 하면 자신이 가리키는 대상이 크기만큼 증가하는데 이것을 '포인터 변수의 주소 연산'이라고 한다.</li>
+</ul>
+<p><img src="./images/pointer_9.png" alt="포인터 변수의 주소 연산" /></p>
+<ul>
+<li><code>p</code>가 <code>short</code> 크기의 데이터를 사용하기 때문에 주소 값이 2씩 증가해야 안전하게 사용할 수 있다.</li>
+<li>다음 코드를 보자.</li>
+<li>포인터 변수의 주소 연산 특성 때문에, 사용할 크기가 다른 네 개의 포인터에 모두 100번지를 대입하고 <code>++</code>연산을 하면 각 포인터에 저장된 주소 값이 모두 달라지게 된다.</li>
+</ul>
+<pre><code class="language-c">char *p1 = (char *) 100;      // p1에 100번지를 저장함
+short *p2 = (short *) 100;    // p2에 100번지를 저장함
+int *p3 = (int *) 100;        // p3 에 100번지를 저장함
+double *p4 = (double *) 100;  // p4에 100번지를 저장함
+p1++;  // 가리키는 대상의 크기가 char형(1바이트)이기 때문에 p1에 저장된 주소 값이 101이 됨
+p2++;  // 가리키는 대상의 크기가 short형(2바이트)이기 때문에 p2에 저장된 주소 값이 102가 됨
+p3++;  // 가리키는 대상의 크기가 int형(4바이트)이기 때문에 p3에 저장된 주소 값이 103가 됨
+p4++;  // 가리키는 대상의 크기가 double형(8바이트)이기 때문에 p4에 저장된 주소 값이 108이 됨
+</code></pre>
+<ul>
+<li>즉 우리가 사용하려는 메모리의 시작 주소를 가리키는 포인터의 주소만 알고 있다면, 주소 연산을 통해 그다음 메모리를 사용할 수 있다.</li>
+</ul>
+<h2 id="13-5-포인터와-대상의-크기"><a class="header" href="#13-5-포인터와-대상의-크기">13-5. 포인터와 대상의 크기</a></h2>
+<h3 id="포인터가-가리키는-대상의-크기"><a class="header" href="#포인터가-가리키는-대상의-크기">포인터가 가리키는 대상의 크기</a></h3>
+<ul>
+<li><code>int *p</code>라고 포인터 변수를 선언할 때 <code>int</code>자료형은 포인터 변수의 크기를 의미하는 것이 아니라 포인터 변수가 가리키는 대상의 크기를 의미하는 것이다.</li>
+<li>따라서 포인터 변수 <code>p</code>에 일반 변수 <code>data</code>의 주소 값을 저장하고 포인터 변수 <code>p</code>를 사용하여 <code>data</code>변수의 값을 변경하는 경우에는 두 변수의 자료형을 같게 지정하는 것이 일반적이다.</li>
+<li>즉 실제 대상의 크기가 4바이트라면 포인터 변수의 자료형도 4바이트 크기로 지정하는 게 일반적이라는 뜻이다.</li>
+</ul>
+<pre><code class="language-c">int data = 0;
+int *p = &amp;data;
+</code></pre>
+<p><img src="./images/pointer_10.png" alt="포인터가 가리키는 대상의 크기" /></p>
+<ul>
+<li>포인터 변수 <code>p</code>는 4바이트 크기의 메모리를 가리킨다.</li>
+</ul>
+<h4 id="포인터가-가리킬-수-있는-크기와-실제-대상의-크기가-다른-경우"><a class="header" href="#포인터가-가리킬-수-있는-크기와-실제-대상의-크기가-다른-경우">포인터가 가리킬 수 있는 크기와 실제 대상의 크기가 다른 경우</a></h4>
+<ul>
+<li>포인터가 가리킬 수 있는 크기와 실제 대상의 크기가 꼭 같아야 하는 것은 아니다.</li>
+<li>프로그래머가 의도적으로 이 두 크기를 다르게 사용하는 경우도 있다.</li>
+</ul>
+<pre><code class="language-c">int data = 0;
+short *p = (short *) &amp;data;  // 포인터 변수 p는 2바이트 크기의 메모리를 가리킬 수 있는 능력을
+                             // 가지고 있지만 4바이트 크기인 data 변수를 가리킬 수도 있다
+</code></pre>
+<p><img src="./images/pointer_11.png" alt="포인터가 가리킬 수 있는 크기와 실제 대상의 크기가 다른 경우" /></p>
+<ul>
+<li>포인터 변수가 가리킬 수 있는 크기는 2바이트이지만, 4바이트 크기의 대상을 가리켜도 문제가 발생하지 않는다.</li>
+<li>이러한 포인터의 특성을 활용하면 4바이트 크기의 변수에 저장된 값을 1바이트 단위로 출력할 수도 있다.</li>
+</ul>
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+
+void main() {
+    int data = 0x12345678, i;
+    char *p = (char *) &amp;data;
+    // &amp;data는 int *형. 그런데 이 주소를 저장할 포인터 p가 char *라서
+    // 자료형이 맞지 않아 (char *) 형 변환을 사용한다.
+
+    // 4바이트 데이터를 바이트 단위로 값을 출력하기 위해 4번 반복함
+    for (i = 0; i &lt; 4; i++) {
+        // p는 char *형이라서 시작 주소부터 1바이트 크기만 사용함
+        printf(&quot;%X, &quot;, *p);
+        p++;  // p가 char *형이라서 1바이트 뒤에 있는 주소로 값이 변경됨
+    }
+}
+</code></pre>
+<pre><code class="language-text">78, 56, 34, 12,
+</code></pre>
+<ul>
+<li>이 예제에서 <code>data</code>변수는 <code>int</code>형으로 선언되어 4바이트 크기인데 <code>data</code>변수를 가리킬 포인터 <code>p</code>변수는 <code>char *</code>로 선언했다.</li>
+<li>따라서 <code>*p</code>를 사용하면 <code>data</code>변수의 시작 주소에서 1바이트 크기만 사용할 수 있다.</li>
+<li>그렇다고 해서 <code>data</code>의 시작 1바이트만 사용할 수 있는 것이 아니라 포인터의 주소 연산을 활용하면 <code>data</code>변수의 나머지 부분도 1바이트씩 사용할 수 있다.</li>
+</ul>
+<p><img src="./images/pointer_12.png" alt="int형 변수에 저장된 값을 1바이트 단위로 출력하기" /></p>
+<ul>
+<li>위 예제는 <code>p</code>가 가지고 있는 주소 값을 옮기는 방식으로 작업했는데, <code>p</code>의 주소 값을 변경하지 않고 <code>data</code>변수 값을 1바이트씩 출력하고 싶다면 반복문 코드만 다음과 같이 변경하면 된다.</li>
+</ul>
+<pre><code class="language-c">for (i = 0; i &lt; 4; i++) {
+    // 첫 바이트는 *(p+0), 두 번째는 *(p+1), 세 번째는 *(p+2), ...
+    printf(&quot;%X, &quot;, *(p + i));
+}
+</code></pre>
+<h2 id="13-6-void--형-포인터"><a class="header" href="#13-6-void--형-포인터">13-6. void * 형 포인터</a></h2>
+<h3 id="대상의-크기가-정해져-있지-않은-void--형-포인터"><a class="header" href="#대상의-크기가-정해져-있지-않은-void--형-포인터">대상의 크기가 정해져 있지 않은 void * 형 포인터</a></h3>
+<ul>
+<li>지금까지는 항상 포인터 변수가 가리키는 대상의 크기를 지정해서 사용했었다.</li>
+<li>하지만 대상의 크기를 모른다면 어떻게 해야 할까?</li>
+<li>이때 사용하는 것이 바로 <code>void</code>키워드이다.</li>
+<li><code>void</code>키워드는 '정해져 있지 않다'라는 의미를 가지고 있다.</li>
+<li>따라서 다음과 같이 변수를 선언하면 포인터 변수 <code>p</code>에 주소 값을 저장할 수는 있지만 해당 주소에서 값을 읽거나 저장할 때 사용하는 크기는 정해져 있지 않다.</li>
+</ul>
+<pre><code class="language-c">void *p;
+</code></pre>
+<ul>
+<li>즉 사용할 메모리의 시작 주소만 알고 끝 주소를 모를 때 사용하는 포인터 형식이다.</li>
+<li>그래서 <code>*p = 5;</code>라고 일반 포인터처럼 사용하면 자신이 사용할 주소의 대상 메모리 크기가 정해져 있지 않기 때문에 번역할 때 문법 오류가 발생한다.</li>
+</ul>
+<pre><code class="language-c">int data = 0;
+void *p = &amp;data;  // data의 시작 주소를 저장함
+*p = 5;  // 오류 발생: 대상 메모리의 크기가 지정되지 않음
+</code></pre>
+<ul>
+<li><code>void *</code>는 포인터가 가리킬 대상의 크기를 정한 것이 아니라서 말 그대로 어떤 크기의 메모리가 오든지 상관없다.</li>
+<li>그렇다고 <code>void *</code>로 선언한 포인터 변수를 주소 값만 저장하는 용도로 사용하는 것은 아니다.</li>
+<li>포인터 변수 <code>p</code>를 사용하여 <code>data</code>변수에 값 5를 대입하고 싶은 경우에 형 변환 문법을 사용하여 '사용할 크기'를 표기해 주면 일반 포인터처럼 사용할 수 있다.</li>
+<li><code>*(int *) p</code>라고 사용하면 일시적으로 포인터 변수 <code>p</code>이 형식이 <code>int *</code>가 되기 때문에 포인터 변수 <code>p</code>에 저장된 주소에 가서 4바이트(int) 크기로 5를 저장한다.</li>
+</ul>
+<pre><code class="language-c">int data = 0;
+void *p = &amp;data;
+*(int *) p = 5;  // 형 변환 문법을 사용하여 대상의 크기를 4바이트로 지정하므로 data 변수에 5가 저장됨
+</code></pre>
+<h3 id="void--형-포인터-활용하기"><a class="header" href="#void--형-포인터-활용하기">void * 형 포인터 활용하기</a></h3>
+<ul>
+<li><code>void *</code>는 포인터의 기능을 사용할 수 없는 것이 아니라 자신이 사용할 대상의 크기 지정을 잠시 미룰 수 있다는 장점을 가지고 있다.</li>
+<li>예를 들어 <code>char *</code>형 주소 값을 저장하려면 <code>char *</code>형 포인터 변수가 있어야 하고 <code>int *</code>형 주소 값을 저장하려면 <code>int *</code>형 포인터 변수가 있어야 한다.</li>
+<li>하지만 <code>void *</code>형 포인터 변수는 <code>char *</code>형이든 <code>int *</code>형이든 형 변환 없이 모두 저장할 수 있기 때문에 더 편리하다.</li>
+<li>다음은 <code>main</code>함수에 선언한 지역 변수의 주소 값을 매개변수로 받아서 그 주소에 해당하는 메모리에 값 1을 대입하는 <code>MyFunc</code>함수이다.</li>
+<li>그런데 <code>MyFunc</code>으로 전달되는 주소의 형식이 <code>char *</code>, <code>short *</code>, <code>int *</code>중 하나이고 이 형식을 사용할 때마다 달라질 수도 있다면 어떻게 해야 할까?</li>
+</ul>
+<pre><code class="language-c">void MyFunc(char *p_char, short *p_short, int *p_int) {
+    // 포인터 변수에 NULL이 저장되어 있으면 아직 주소를 저장하지 않고 초기화된 상태이다.
+    // NULL이 아닌 다른 값을 가져야 제대로 사용할 수 있다.
+    if (p_char != NULL) *p_char = 1;
+    else if (p_short != Null) *p_short = 1;
+    else *p_int = 1;
+}
+
+void main() {
+    short data = 5;
+    // data 변수는 short형이기 때문에 short *를 사용하는 두 번째 매개변수에 주소를 넘겨줌
+    MyFunc(NULL, &amp;data, NULL);
+}
+</code></pre>
+<ul>
+<li>어떤 형식의 주소 값이 전달될지 모르기 때문에 위 예시처럼 세 개의 포인터를 매개변수에 추가해야 한다.</li>
+<li>그리고 실제로 사용할 포인터에만 변수의 주소 값을 전달하고 나머지는 사용하지 않겠다는 뜻으로 <code>NULL</code>을 적는다.</li>
+<li><code>NULL</code>은 C 언어 기본 헤더 파일에 <code>#define</code>으로 정의되어 있으며 0번지를 의미한다.</li>
+<li>그래서 일반 변수는 초기화할 때 0을 대입하지만 포인터 변수는 초기화할 때 0번지를 의미하는 <code>NULL</code>을 사용해야 한다.</li>
+<li>그런데 만약 <code>MyFunc</code>함수로 전달되는 주소의 형식이 더 많아지면 어떻게 될까?</li>
+<li>매개변수가 너무 많아져서 불편할 것이다.</li>
+<li>따라서 이 예제를 <code>void *</code>형을 사용하여 수정해 보자.</li>
+</ul>
+<pre><code class="language-c">void MyFunc(void *p, char flag) {
+    // flag에 전달된 값에 따라 형 변환하여 전달된 주소에 1을 대입함
+    if (flag == 0) *(char *) p = 1;  // flag가 0이면 char *형
+    else if (flag == 1) *(short *) p = 1;  // flag가 1이면 short *형
+    else *(int *) p = 1;  // flag가 0과 1이 아니면 int *형
+}
+
+void main() {
+    short data = 5;
+    // data 변수는 short형이기 때문에 short *를 의미하는 1을 같이 전달함
+    MyFunc(&amp;data, 1);
+}
+</code></pre>
+<ul>
+<li><code>void *</code>형 포인터를 매개변수로 사용하면 어떤 형식의 주소이든 저장할 수 있지만 3가지 주소 형식 중에서 무엇을 사용했는지 알 수 없다.</li>
+<li>따라서 <code>char *</code>는 0, <code>short *</code>는 1, <code>int *</code>는 2를 의미하는 값을 매개변수로 함께 전달해야 한다.</li>
+<li>위 코드에서 <code>*(char *) p</code>라고 사용하면 <code>void *</code>형이었던 포인터 변수 <code>p</code>가 일시적으로 <code>char *</code>형으로 변환된다.</li>
+<li><code>*(short *) p</code>도 마찬가지이다.</li>
+<li>지금까지 설명한 두 가지 방법 중 어떤 것이 더 좋다고 이야기할 수는 없다.</li>
+<li>매개변수로 전달되는 주소의 형식이 많아지면 <code>void *</code>를 사용하는 것이 좀 더 좋을 것 같다.</li>
+</ul>
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+
+int GetData(void *p_data, char type) {
+    int result = 0;
+    // type 변수에 저장된 값을 기준으로 형 변환을 다르게 함
+    if (type == 1) result = *(char *) p_data;  // 0x78(1바이트)이 저장됨
+    else if (type == 2) result = *(short *) p_data;  // 0x5678(2바이트)이 저장됨
+    else if (type == 4) result = *(int *) p_data;  // 0x12345678(4바이트)이 저장됨
+    return result;
+}
+
+void main() {
+    int data = 0x12345678;
+    // data 변수에서 2바이트 크기만 출력함
+    printf(&quot;%X\n&quot;, GetData(&amp;data, 2));
+}
+</code></pre>
+<pre><code class="language-text">5678
+
+*리틀 엔디언 시스템의 출력 결과이다
+</code></pre>
+<ul>
+<li>이 예제는 4바이트 크기의 정수를 저장하는 <code>data</code>변수가 있는데 이 변수에 저장된 값을 그대로 출력하지 않는다.</li>
+<li>사용자가 <code>type</code>변수에 값 1을 지정하면 <code>data</code>변수이 1바이트 값만 출력하고, 2를 지정하면 <code>data</code>변수의 2바이트 값을 출력하며, 4를 지정하면 <code>data</code>변수의 4바이트 값, 즉 전체 값을
+출력하도록 만든 것이다.</li>
+</ul>
+<p><img src="./images/pointer_13.png" alt="void *를 사용하여 대상 메모리의 크기 조절하기" /></p>
+<blockquote>
+<h4 id="포인터-변수에서-형-변환-문법은-모든-자료형에서-사용할-수-있다"><a class="header" href="#포인터-변수에서-형-변환-문법은-모든-자료형에서-사용할-수-있다">포인터 변수에서 형 변환 문법은 모든 자료형에서 사용할 수 있다</a></h4>
+<ul>
+<li>포인터 변수에 직접 형 변환을 사용하는 형식은 <code>void *</code>에서만 사용할 수 있는 것이 아니라 모든 포인터에서 사용할 수 있는 개념이다.</li>
+<li>그래서 <code>void *</code>대신에 <code>char *</code>로 선언해 놓고 <code>void *</code>를 사용하는 것처럼 형 변환하여 구성된 코드도 많이 볼 수 있다.</li>
+</ul>
+<pre><code class="language-c">int data = 0x12345678;
+char *p = (char *) &amp;data;  // 서로 자료형이 맞지 않아서 (char *)로 형 변환함
+*p = 5;  // data 변수의 시작 1바이트에 값 5를 넣으면 data 는 0x12345605로 변경됨
+*(short *) p = 0;  // data 변수의 시작 2바이트에 값 0을 넣으면 data는 0x12340000로 변경됨
+</code></pre>
+</blockquote>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="14-표준-입력-함수"><a class="header" href="#14-표준-입력-함수">14. 표준 입력 함수</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="15-배열과-포인터"><a class="header" href="#15-배열과-포인터">15. 배열과 포인터</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="16-메모리-할당"><a class="header" href="#16-메모리-할당">16. 메모리 할당</a></h1>
