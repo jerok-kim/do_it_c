@@ -675,26 +675,24 @@ if (NULL != p) {
 </ul>
 <pre><code class="language-c">/* 동적 메모리 할당을 사용하여 이름 입력 받고 출력하기 */
 
-#include
-&lt;stdio.h&gt;
-#include
-&lt;malloc.h&gt;  // malloc, free 함수를 사용하기 위해 추가함
+#include &lt;stdio.h&gt;
+#include &lt;malloc.h&gt;  // malloc, free 함수를 사용하기 위해 추가함
 
 void main() {
-char *p_name;
-p_name = (char *) malloc(32);  // 32바이트의 메모리를 동적 할당한다
+    char *p_name;
+    p_name = (char *) malloc(32);  // 32바이트의 메모리를 동적 할당한다
 
-if (p_name != NULL) {
-// 메모리 할당에 성공한 경우
-printf(&quot;Your name :&quot;);
-gets(p_name);  // 이름을 입력 받음
+    if (p_name != NULL) {
+        // 메모리 할당에 성공한 경우
+        printf(&quot;Your name :&quot;);
+        gets(p_name);  // 이름을 입력 받음
 
-printf(&quot;Hi! %s\n&quot;, p_name);  // 입력 받은 이름을 출력함
-free(p_name);
-} else {
-// 메모리 할당에 실패한 경우
-printf(&quot;Memory allocation error!!&quot;);
-}
+        printf(&quot;Hi! %s\n&quot;, p_name);  // 입력 받은 이름을 출력함
+        free(p_name);
+    } else {
+        // 메모리 할당에 실패한 경우
+        printf(&quot;Memory allocation error!!&quot;);
+    }
 }
 </code></pre>
 <pre><code class="language-text">Your name :Jerok, Kim
@@ -853,31 +851,29 @@ int data[data_size];  // 배열의 요소 개수는 상수로만 명시할 수 �
 </ul>
 <pre><code class="language-c">/* 정적 메모리 할당을 사용하여 숫자를 입력 받아 합산하기 */
 
-#include
-&lt;stdio.h&gt;
+#include &lt;stdio.h&gt;
 
-#define
-MAX_COUNT 5  // 최대 입력을 5회로 제한함
+#define MAX_COUNT 5  // 최대 입력을 5회로 제한함
 
 void main() {
-int num[MAX_COUNT], count = 0, sum = 0, i;
+    int num[MAX_COUNT], count = 0, sum = 0, i;
 
-// 최대 5회까지 입력 받고 중간에 9999를 누르면 종료함
-while (count &lt; MAX_COUNT) {
-printf(&quot;숫자를 입력하세요 (9999를 누르면 종료) :&quot;);
-scanf(&quot;%d&quot;, num + count);  // scanf(&quot;%d&quot;, &amp;num[count]); 과 같은 표현
-if (num[count] == 9999) break;  // 9999를 누르면 입력 중단함
-count++;  // 입력된 횟수를 계산함
-}
+    // 최대 5회까지 입력 받고 중간에 9999를 누르면 종료함
+    while (count &lt; MAX_COUNT) {
+        printf(&quot;숫자를 입력하세요 (9999를 누르면 종료) :&quot;);
+        scanf(&quot;%d&quot;, num + count);  // scanf(&quot;%d&quot;, &amp;num[count]); 과 같은 표현
+        if (num[count] == 9999) break;  // 9999를 누르면 입력 중단함
+        count++;  // 입력된 횟수를 계산함
+    }
 
-// 입력된 횟수만큼 숫자를 출력함
-for (i = 0; i &lt; count; i++) {
-if (i &gt; 0) printf(&quot; + &quot;);  // 숫자와 숫자 사이에 +를 출력함
-printf(&quot; %d&quot;, num[i]);  // 입력한 숫자를 출력함
-sum = sum + num[i];  // 입력한 숫자들을 합산함
-}
+    // 입력된 횟수만큼 숫자를 출력함
+    for (i = 0; i &lt; count; i++) {
+        if (i &gt; 0) printf(&quot; + &quot;);  // 숫자와 숫자 사이에 +를 출력함
+        printf(&quot; %d&quot;, num[i]);  // 입력한 숫자를 출력함
+        sum = sum + num[i];  // 입력한 숫자들을 합산함
+    }
 
-printf(&quot; = %d\n&quot;, sum);  // 합산 값을 출력함
+    printf(&quot; = %d\n&quot;, sum);  // 합산 값을 출력함
 }
 </code></pre>
 <pre><code class="language-text">숫자를 입력하세요 (9999를 누르면 종료) :7
@@ -919,37 +915,35 @@ int *p = (int *) malloc(data_size);  // 12바이트의 메모리가 동적 할�
 </ul>
 <pre><code class="language-c">/* 동적 메모리 할당을 사용하여 숫자를 입력 받아 합산하기 */
 
-#include
-&lt;stdio.h&gt;
-#include
-&lt;malloc.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;malloc.h&gt;
 
 void main() {
-int *p_num_list, count = 0, sum = 0, limit = 0, i;
+    int *p_num_list, count = 0, sum = 0, limit = 0, i;
 
-printf(&quot;사용할 최대 개수를 입력하세요 :&quot;);
-scanf(&quot;%d&quot;, &amp;limit);
+    printf(&quot;사용할 최대 개수를 입력하세요 :&quot;);
+    scanf(&quot;%d&quot;, &amp;limit);
 
-// 사용자가 입력한 개수만큼 정수를 저장할 수 있는 메모리를 할당함
-p_num_list = (int *) malloc(sizeof(int) * limit);
+    // 사용자가 입력한 개수만큼 정수를 저장할 수 있는 메모리를 할당함
+    p_num_list = (int *) malloc(sizeof(int) * limit);
 
-// 중간에 9999를 누르면 종료함
-while (count &lt; limit) {
-printf(&quot;숫자를 입력하세요 (9999를 누르면 종료) :&quot;);
-scanf(&quot;%d&quot;, p_num_list + count);
-if (*(p_num_list + count) == 9999) break;  // 9999를 누르면 입력 중단함
-count++;  // 입력된 횟수 계산함
-}
+    // 중간에 9999를 누르면 종료함
+    while (count &lt; limit) {
+        printf(&quot;숫자를 입력하세요 (9999를 누르면 종료) :&quot;);
+        scanf(&quot;%d&quot;, p_num_list + count);
+        if (*(p_num_list + count) == 9999) break;  // 9999를 누르면 입력 중단함
+        count++;  // 입력된 횟수 계산함
+    }
 
-// 입력된 횟수만큼 숫자를 출력함
-for (i = 0; i &lt; count; i++) {
-if (i &gt; 0) printf(&quot; + &quot;);  // 숫자와 숫자 사이에 +를 출력함
-printf(&quot; %d &quot;, *(p_num_list + i));  // 입력한 숫자 출력함
-sum = sum + *(p_num_list + i);  // 입력한 숫자들을 합산함
-}
+    // 입력된 횟수만큼 숫자를 출력함
+    for (i = 0; i &lt; count; i++) {
+        if (i &gt; 0) printf(&quot; + &quot;);  // 숫자와 숫자 사이에 +를 출력함
+        printf(&quot; %d &quot;, *(p_num_list + i));  // 입력한 숫자 출력함
+        sum = sum + *(p_num_list + i);  // 입력한 숫자들을 합산함
+    }
 
-printf(&quot; = %d\n&quot;, sum);  // 합산 값을 출력함
-free(p_num_list);  // 사용했던 메모리를 제거함
+    printf(&quot; = %d\n&quot;, sum);  // 합산 값을 출력함
+    free(p_num_list);  // 사용했던 메모리를 제거함
 }
 </code></pre>
 <pre><code class="language-text">사용할 최대 개수를 입력하세요 :6
