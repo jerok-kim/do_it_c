@@ -9709,6 +9709,389 @@ void main() {
 <pre><code class="language-text">파일 크기: 24
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="20-함수-포인터"><a class="header" href="#20-함수-포인터">20. 함수 포인터</a></h1>
+<h2 id="20-1-함수-포인터"><a class="header" href="#20-1-함수-포인터">20-1. 함수 포인터</a></h2>
+<h3 id="프로세스-메모리-영역에-저장되는-명령"><a class="header" href="#프로세스-메모리-영역에-저장되는-명령">프로세스 메모리 영역에 저장되는 명령</a></h3>
+<ul>
+<li>C 언어로 작성한 소스 코드가 컴파일러에 의해 기계어로 번역되면 실행 파일이 된다.</li>
+<li>이 실행 파일은 CPU가 처리할 수 있는 '기계어 명령문' 단위로 이루어진다.</li>
+<li>그리고 해당 프로그램이 실행되어 프로세스 형태로 메모리에 저장되면 프로그램의 명령문들은 코드 세그먼트(CS, Code Segment)에 옮겨진다.</li>
+</ul>
+<p><img src="./images/process_4.png" alt="프로세스 메모리 영역에 저장되는 명령" /></p>
+<ul>
+<li>결국 이 말은 명령문들도 메모리에 저장되어 있기 때문에 각 명령문마다 주소를 갖는다는 뜻이다.</li>
+<li>메모리의 주소 값을 알고 있다면 당연히 포인터를 사용할 수 있을 것이다.</li>
+<li>포인터 개념을 사용하면 특정 명령문이 저장된 메모리의 주소로 바로 이동해서 그 명령문을 실행할 수 있다.</li>
+<li>하지만 제멋대로 메모리의 위치를 이동하면서 명령문을 실행하면 C 언어의 스택 프레임이 엉망이 되기 때문에 스택 프레임이 유지될 수 있도록 함수 단위로만 이동해야 한다.</li>
+<li>스택 프레임이란 스택을 함수 단위로 구역을 나눠서 사용할 수 있도록 C 언어에서 제공하는 스택 관리 방식이다.</li>
+<li>지금까지 배운 포인터는 데이터 세그먼트 또는 스택 세그먼트에 있는 변수의 주소나 메모리 주소를 저장해서 사용하는 데이터 포인터에 대한 이야기였다.</li>
+<li>지금부터는 코드 세그먼트에 있는 명령문이 주소를 저장해서 포인터로 사용하는 방법에 대해 알아보자.</li>
+</ul>
+<h3 id="함수-포인터란"><a class="header" href="#함수-포인터란">함수 포인터란?</a></h3>
+<ul>
+<li>함수 포인터(Function Pointer)란 특정 함수를 구성하는 시작 명령의 위치를 가리키는 포인터이다.</li>
+<li>함수 포인터를 사용하면 해당하는 함수를 호출하여 실행할 수 있다.</li>
+<li>함수 포인터에 대해 알아보기 위해 다음과 같이 두 개의 매개변수로 값을 받아서 이 값을 합산한 뒤 반환하는 <code>Sum</code>함수를 만들어보자.</li>
+</ul>
+<pre><code class="language-c">int Sum(int a, int b) {
+    int result = 0;
+    result = a + b;
+    return result;
+}
+</code></pre>
+<ul>
+<li>이 함수를 호출해서 사용하는 코드는 다음과 같다.</li>
+</ul>
+<pre><code class="language-c">int result = Sum(2, 3);  // result에는 2+3의 결과 값 5가 저장됨
+</code></pre>
+<ul>
+<li>이렇게 함수를 호출해서 사용하는 것이 일반적이다.</li>
+<li>함수는 여러 개의 명령문으로 구성된다.</li>
+<li>위 예시에서도 <code>Sum</code>함수는 3개의 명령문으로 구성되어 있다.</li>
+<li>그래서 <code>Sum</code>함수 안에서 첫 번째 문장에 해당하는 <code>int result = 0;</code>이 저장된 메모리 위치의 주소가 <code>Sum</code>함수의 시작 주소가 된다.</li>
+<li>하지만 명령문 자체는 얼마든지 중복될 수 있기 때문에 명령문을 기준으로 주소 값을 얻는 것은 어렵다.</li>
+<li>즉, <code>Sum</code>함수에 사용한 <code>int result = 0;</code>코드는 다른 함수인 <code>Sub</code>함수에서도 <code>int result = 0;</code>이라고 사용할 수 있기 때문에, 이 코드를 함수 구별 기준으로 삼는 것은 적합하지
+않다는 뜻이다.</li>
+<li>그래서 함수의 첫 번째 명령문을 기준으로 주소 값을 얻지 않고, 함수의 이름 앞에 <code>&amp;</code>를 적으면 함수에 포함되는 첫 번째 명령문의 주소 값을 얻을 수 있다.</li>
+</ul>
+<pre><code class="language-c">&amp;Sum;  // Sum 함수의 첫 번째 명령문 주소를 의미함. &amp;를 적지 않아도 같게 처리됨
+</code></pre>
+<h4 id="함수의-주소-값으로-함수-실행하기"><a class="header" href="#함수의-주소-값으로-함수-실행하기">함수의 주소 값으로 함수 실행하기</a></h4>
+<ul>
+<li>이제 이 주소 값을 저장할 수 있는 포인터를 선언해야 한다.</li>
+<li>데이터를 가리키는 포인터가 자신이 가리킬 대상의 크기를 명시하듯이 함수 포인터는 함수 원형(Function Prototype)을 사용해서 포인터를 선언한다.</li>
+<li>함수 포인터가 함수 원형을 사용하는 이유는 함수 원형을 알아야 함수를 호출할 때 스택 프레임을 구성할 수 있기 때문이다.</li>
+<li>예를 들어 <code>Sum</code>함수의 원형은 <code>int Sum(int, int);</code>이기 때문에 다음과 같이 선언할 수 있다.</li>
+</ul>
+<pre><code class="language-c">int (*p)(int, int);  // Sum 함수를 가리킬 수 있는 함수 포인터를 선언함
+p = &amp;Sum;  // Sum 함수의 주소를 p에 저장함
+</code></pre>
+<ul>
+<li>이렇게 함수 포인터를 선언하여 자신이 호출할 함수의 주소를 저장했다면 다음과 같이 함수를 호출할 수 있다.</li>
+</ul>
+<pre><code class="language-c">int result = (*p)(2, 3);  // int result = Sum(2, 3); 과 같으므로 result에는 5가 저장됨
+</code></pre>
+<h2 id="20-2-함수-그룹"><a class="header" href="#20-2-함수-그룹">20-2. 함수 그룹</a></h2>
+<h3 id="원형이-같은-함수들을-묶기"><a class="header" href="#원형이-같은-함수들을-묶기">원형이 같은 함수들을 묶기</a></h3>
+<ul>
+<li>함수의 포인터를 사용하는 가장 단순한 이유는 같은 형식의 함수를 그룹으로 묶을 수 있기 때문이다.</li>
+<li>여기에서 같은 형식이란 같은 수의 매개변수와 자료형 그리고 같은 형태의 반환값을 갖는 함수들을 말한다.</li>
+<li>다음과 같이 사칙 연산을 하는 4개의 함수가 있다고 가정해보자.</li>
+</ul>
+<pre><code class="language-c">int Sum(int a, int b) { return a + b; }
+</code></pre>
+<pre><code class="language-c">int Sumb(int a, int b) { return a - b; }
+</code></pre>
+<pre><code class="language-c">int Mul(int a, int b) { return a * b; }
+</code></pre>
+<pre><code class="language-c">int Div(int a, int b) { return a / b; }
+</code></pre>
+<ul>
+<li>위 4개의 함수를 사용하여 숫자 8과 2를 연산한 결과 값을 얻으려면 다음과 같이 코드를 구성할 것이다.</li>
+</ul>
+<pre><code class="language-c">int result1, result2, result3, result4;
+result1 = Sum(8, 2);  // result1에는 값 10이 저장됨
+result2 = Sub(8, 2);  // result2에는 값 6이 저장됨
+result3 = Mul(8, 2);  // result3에는 값 16이 저장됨
+result4 = Div(8, 2);  // result4에는 값 4가 저장됨
+</code></pre>
+<ul>
+<li>일반적으로 함수를 호출할 때는 이름을 사용하기 때문에 위 코드처럼 나열식으로 작성할 수 밖에 없다.</li>
+<li>그런데 이 함수들을 잘 살펴보면 함수 이름만 다를 뿐 함수의 원형은 모두 같다.</li>
+<li>따라서 다음처럼 함수의 포인터를 선언하면 이 함수들의 주소 값을 저장해서 사용할 수 있다.</li>
+</ul>
+<p><img src="./images/function_group.png" alt="함수 그룹" /></p>
+<ul>
+<li>같은 형태의 자료형을 묶을 때는 배열을 사용한다.</li>
+<li>이 작업에서는 같은 함수 원형을 갖는 4개의 함수를 사용하기 때문에 배열을 사용하여 다음과 같이 선언할 수 있다.</li>
+<li>그리고 각 함수의 주소 값으로 초기화했다.</li>
+</ul>
+<pre><code class="language-c">int (*p[4])(int, int) = {&amp;Sum, &amp;Sub, &amp;Mul, &amp;Div};
+</code></pre>
+<ul>
+<li>위 모드를 메모리 그림으로 보면 다음과 같다.</li>
+</ul>
+<p><img src="./images/function_group_memory.png" alt="함수 그룹 메모리" /></p>
+<ul>
+<li>이렇게 함수 포인터를 배열 형식으로 묶으면 이 함수들을 연속해서 호출할 때 다음과 같이 반복문을 사용하여 코드를 단순화시킬 수 있다.</li>
+<li>다음 예제는 함수 포인터를 배열로 선언해서 8과 2를 더하고 빼고 곱하고 나누는 작업을 반복문으로 처리하고 있다.</li>
+</ul>
+<pre><code class="language-c">int (*p[4])(int, int) = {&amp;Sum, &amp;Sub, &amp;Mul, &amp;Div};
+int result[4], i;  // 함수를 호출하면 반환되는 결과 값 4개를 저장할 배열을 선언함
+
+// Sum, Sub, Mul, Div 순으로 호출되어 10, 6, 16, 4 값이 result 배열에 차례대로 저장된다
+for(i = 0; i &lt; 4; i++) result[i] = (*p[i])(8, 2);
+</code></pre>
+<blockquote>
+<h4 id="복잡한-선언은-typedef-문법으로-코드를-단순화시켜-사용하자"><a class="header" href="#복잡한-선언은-typedef-문법으로-코드를-단순화시켜-사용하자">복잡한 선언은 typedef 문법으로 코드를 단순화시켜 사용하자</a></h4>
+<pre><code class="language-c">typedef int (*OP_TYPE)(int, int);  // OP_TYPE라는 새로운 자료형을 정의함
+OP_TYPE p[4] = {&amp;Sum, &amp;Sub, &amp;Mul, &amp;Div};
+</code></pre>
+</blockquote>
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+
+int Sum(int a, int b) { return a + b; }
+
+int Sub(int a, int b) { return a - b; }
+
+int Mul(int a, int b) { return a * b; }
+
+int Div(int a, int b) { return a / b; }
+
+void main() {
+    int (*p[4])(int, int) = {&amp;Sum, &amp;Sub, &amp;Mul, &amp;Div}, i;
+    char op_table[4] = {'+', '-', '*', '/'};
+
+    // Sum, Sub, Mul, Div 순으로 호출함
+    for (i = 0; i &lt; 4; i++) printf(&quot;%d %c %d = %d\n&quot;, 8, op_table[i], 2, (*p[i])(8, 2));
+}
+</code></pre>
+<pre><code class="language-text">8 + 2 = 10
+8 - 2 = 6
+8 * 2 = 16
+8 / 2 = 4
+</code></pre>
+<h2 id="20-3-콜백-함수"><a class="header" href="#20-3-콜백-함수">20-3. 콜백 함수</a></h2>
+<h3 id="라이브러리를-만드는-라이브러리-프로그래머"><a class="header" href="#라이브러리를-만드는-라이브러리-프로그래머">라이브러리를 만드는 라이브러리 프로그래머</a></h3>
+<ul>
+<li>함수 포인터는 도대체 어디에 쓰는 것일까?</li>
+<li>모든 프로그래머가 완제품 형식의 프로그램을 만들지는 않는다.</li>
+<li>예를 들어 음성 데이터를 압축하거나 영상 데이터를 변환하는 작업들은 특별한 지식이 필요하기 때문에 쉽게 구현할 수 없다.</li>
+<li>그래서 이런 기능을 쉽게 사용할 수 있도록 함수로 만들어서 판매하는 프로그래머들도 있다.</li>
+<li>이들 프로그래머는 자신의 코드가 노출되면 안 되기 때문에 해당 코드를 컴파일해서 라이브러리(library, <code>*.lib</code>)형식의 파일로 제공한다.</li>
+<li>그리고 라이브러리 안에 있는 함수들이 어떤 형태로 선언된 함수인지 알아야 코드를 자세히 볼 수 없는 사용자들도 사용할 수 있기 때문에 함수의 원형들을 헤더(header, <code>*.h</code>)파일에 적어서 함께 제공한다.</li>
+<li>예를 들어 두 개의 정수 값을 넘겨 받아서 합산하는 <code>Sum</code>함수를 라이브러리 형태로 제공한다고 생각해보자.</li>
+<li>그러면 라이브러리 사용자에게는 파일 내부를 볼 수 없는 라이브러리 파일 <code>sum.lib</code>와 라이브러리 파일을 설명하는 헤더 파일 <code>sum.h</code>를 모두 제공해야 한다.</li>
+<li><code>#pragma</code>전처리기를 사용하면 컴파일러의 여러 가지 설정 값을 수정할 수 있다.</li>
+<li>다음과 같이 사용하면 <code>sum.lib</code>파일을 이 프로그램에서 사용하겠다는 뜻이다.</li>
+</ul>
+<blockquote>
+<p><code>sum.h</code></p>
+<pre><code class="language-c">// Sum 함수의 원형
+int Sum(int a, int b);
+</code></pre>
+<p><code>sum.lib</code></p>
+<pre><code class="language-c">// 두 값을 합산하는 함수
+int Sum(int a, int b) { return a + b; }
+</code></pre>
+<pre><code class="language-c">#include &quot;sum.h&quot;
+#pragma comment(lib, &quot;sum.lib&quot;)
+
+void main() {
+    int result = Sum(2, 3);
+}
+</code></pre>
+</blockquote>
+<h3 id="라이브러리-프로그래머의-고민"><a class="header" href="#라이브러리-프로그래머의-고민">라이브러리 프로그래머의 고민</a></h3>
+<ul>
+<li>라이브러리에 포함된 <code>Sum</code>함수를 사용하던 사용자(일반 프로그래머)가 <code>Sum</code>함수에 전달되는 두 숫자 값이 음수인 경우에 양수로 변환해서 합산하는 함수도 추가로 만들어 달라고 요청했다고 해보자.</li>
+<li>그러면 라이브러리 프로그래머는 <code>SumABS</code>라는 새로운 함수를 추가한 후 다시 라이브러리 파일로 만들어서 사용자에게 제공해야 한다.</li>
+</ul>
+<blockquote>
+<p><code>sum.h</code></p>
+<pre><code class="language-c">// Sum의 원형
+int Sum(int a, int b);
+
+// SumABS의 원형
+int SumABS(int a, int b);
+</code></pre>
+<p><code>sum.lib</code></p>
+<pre><code class="language-c">// 두 값을 합산하는 함수
+int Sum(int a, int b) { return a + b; }
+
+// 두 절대값을 합산하는 함수
+int SumABS(int a, int b) {
+    // 음수이면 -1을 곱해서 양수로 만듦
+    if(a &lt; 0) a = a * (-1);
+    if(b &lt; 0) b = b * (-1);
+    
+    return a + b;
+}
+</code></pre>
+<pre><code class="language-c">#include &quot;sum.h&quot;
+#pragma comment(lib, &quot;sum.lib&quot;)
+
+void main() {
+    int result1, result2;
+    
+    // result1에는 -1이 저장됨
+    result1 = Sum(2, -3);
+    
+    // result2에는 5가 저장됨
+    result2 = SumABS(2, -3);
+}
+</code></pre>
+</blockquote>
+<ul>
+<li>라이브러리 사용자가 계속 새로운 기능을 또 추가해 달라고 요청하면 어떻게 해야 할까?</li>
+<li>함수가 계속 늘어나고, 라이브러리가 사용자의 요구에 점점 종속되는 결과를 가져온다.</li>
+<li>그래서 라이브러리에 포함된 함수는 본래의 기능을 유지하고 사용자가 원하는 경우에 스스로 함수의 기능을 일부 수정할 수 있도록 제공하는 것이 더 좋다.</li>
+<li>하지만 라이브러리 소스 코드 전체를 줄 수는 없을 것이다.</li>
+<li>그러면 라이브러리 사용자는 어떻게 소스 코드 없이 라이브러리를 수정해서 사용할 수 있을까?</li>
+</ul>
+<h3 id="함수의-매개변수로-함수-포인터-사용하기"><a class="header" href="#함수의-매개변수로-함수-포인터-사용하기">함수의 매개변수로 함수 포인터 사용하기</a></h3>
+<ul>
+<li>앞의 예시에서 <code>SumABS</code>함수에는 <code>a</code>값과 <code>b</code>값을 수정하는 작업이 추가되어 있다.</li>
+<li>조건문으로 처리된 두 코드가 비슷하기 때문에 라이브러리 소스 코드에서 다음과 같이 함수로 만들어서 처리할 수도 있다.</li>
+</ul>
+<pre><code class="language-c">void MyAbsolute(int *p) {
+    if (*p &lt; 0) *p = (*p) * (-1);
+}
+
+int SumABS(int a, int b) {
+    MyAbsolute(&amp;a);  // if(a &lt; 0) a = a * (-1); 과 같음
+    MyAbsolute(&amp;b);  // if(b &lt; 0) b = b * (-1); 과 같음
+    
+    return a + b;
+}
+</code></pre>
+<ul>
+<li>만약 라이브러리 사용자가 <code>MyAbsolute</code>같은 기능의 함수를 만들어서 기존 라이브러리에 있는 <code>SumABS</code>함수를 호출할 때 함께 사용하고 싶다면 어떻게 해야 할까?</li>
+<li>기존 라이브러리에는 라이브러리 사용자가 새로 만들고자 하는 <code>MyAbsolute</code>라는 이름의 함수가 없기 때문에 함수 이름으로는 호출할 수 없다.</li>
+<li>함수 포인터를 활용하면 함수 이름이 없어도 함수를 호출할 수 있다.</li>
+<li>예를 들어 <code>MyAbsolute</code>함수는 함수의 원형이 <code>void MyAbsolute(int *);</code>이기 때문에 라이브러리 소스 코드에서 다음과 같이 포인터를 사용하면 이 함수의 주소를 받아서 사용할 수 있다.</li>
+</ul>
+<pre><code class="language-c">void (*p)(int *);
+</code></pre>
+<ul>
+<li>따라서 <code>SumABS</code>함수는 함수 포인터를 사용하여 다음과 같이 변경할 수 있다.</li>
+<li>매개변수에서 <code>fp_abs</code>라고 사용할 때 <code>fp</code>는 함수 포인터(Function Pointer)의 약어이다.</li>
+<li>프로그래밍할 때 변수 이름에 변수의 특징을 드러내 주면 다른 사람이 코드를 이해하기가 훨씬 수월하다.</li>
+</ul>
+<pre><code class="language-c">int SumABS(int a, int b, void (*fp_abs)(int *)) {
+    (*fp_abs)(&amp;a);  // MyAbsolute(&amp;a)와 같음
+    (*fp_abs)(&amp;b);  // MyAbsolute(&amp;b)와 같음
+    
+    return a + b;
+}
+</code></pre>
+<ul>
+<li>라이브러리 프로그래머가 함수 포인터를 사용해 <code>SumABS</code>함수를 구성하면 사용자가 원하는 <code>MyAbsolute</code>함수가 없더라도 정상적으로 컴파일이 완료된다.</li>
+<li>그리고 라이브러리 사용자가 <code>MyAbsolute</code>함수를 만들어서 자신이 사용하고 싶은 시점에 다음과 같이 <code>SumABS</code>함수를 사용할 수도 있다.</li>
+</ul>
+<pre><code class="language-c">SumABS(5, -1, &amp;MyAbsolute);  // SumABS 함수에서 MyAbsolute 함수를 호출한 것과 같음
+</code></pre>
+<ul>
+<li><code>SumABS</code>함수를 이렇게 구성하면 <code>MyAbsolute</code>를 사용하고 싶을 때는 위의 예시처럼 <code>&amp;MyAbsolute</code>를 세 번째 매개변수로 전달하면 된다.</li>
+<li><code>MyAbsolute</code>함수를 사용하지 않는 경우에는 다음처럼 <code>SumABS</code>함수의 세 번째 매개변수에 <code>NULL</code>을 입력한다.</li>
+</ul>
+<pre><code class="language-c">SumABS(5, -1, NULL);  // SumABS 함수에서 MyAbsolute 함수를 사용하지 않는 경우
+</code></pre>
+<ul>
+<li><code>NULL</code>이 매개변수로 넘어오는 상황을 처리해보자.</li>
+</ul>
+<pre><code class="language-c">int SumABS(int a, int b, void (*fp_abs)(int *)) {
+    if(fp_abs != NULL) (*fp_abs)(&amp;a);
+    if(fp_abs != NULL) (*fp_abs)(&amp;b);
+    
+    return a + b;
+}
+</code></pre>
+<ul>
+<li>조건문을 통해 <code>fp_abs</code>에 저장된 주소가 <code>NULL</code>인지 먼저 확인한 후 <code>(*fp_abs)(&amp;a)</code> 또는 <code>(*fp_abs)(&amp;b)</code>라고 사용해서 매개변수로 전달되는 함수를 호출한다.</li>
+<li>그러면 <code>SumABS</code>함수를 사용할 때 <code>MyAbsolute</code>함수를 호출할 것인지 선택할 수 있게 된다.</li>
+<li>이렇게 소스 코드를 수정하고 나면, <code>Sum</code>함수는 <code>SumABS</code>함수의 세 번째 매개변수에 <code>NULL</code>을 전달해서 사용하는 것과 같다.</li>
+<li>따라서 함수의 이름을 <code>Sum</code>으로 통일하고 기능을 합칠 수 있다.</li>
+<li>그리고 <code>a</code>변수 값과 <code>b</code>변수 값에 적용되는 기준이 다를 수도 있기 때문에 함수 포인터를 <code>a</code>, <code>b</code>변수마다 다르게 사용할 수 있도록 설정한다.</li>
+<li>즉, 다음과 같이 함수 포인터를 하나 더 추가해서 <code>pa</code>와 <code>pb</code>로 변경한다.</li>
+</ul>
+<blockquote>
+<p><code>sum.h</code></p>
+<pre><code class="language-c">/* Sum 함수의 원형 */
+
+int Sum(int a, int b, void (*pa)(int *), void (*pb)(int *));
+</code></pre>
+<p><code>sum.lib</code></p>
+<pre><code class="language-c">/* 두 값을 합산하는 함수 */
+
+int Sum(int a, int b, void (*pa)(int *), void (*pb)(int *)) {
+
+    // pa 또는 pb에 함수의 주소 값이 할당되어 있으면 해당 함수를 호출한다.
+    if(NULL != pa) (*pa)(&amp;a);
+    if(NULL != pb) (*pb)(&amp;b);
+    
+    return a + b;
+}
+</code></pre>
+</blockquote>
+<ul>
+<li>예를 들어 <code>Sum</code>함수를 사용하는 사용자가 함수의 기능은 변경하지 않고 데이터 합산만 하고 싶다면 다음과 같이 사용하면 된다.</li>
+</ul>
+<pre><code class="language-c">#include &quot;sum.h&quot;
+#pragma comment(lib, &quot;sum.lib&quot;)
+
+void main() {
+    int result = Sum(-3, -2, NULL, NULL);  // result에 값 -5가 저장됨
+}
+</code></pre>
+<ul>
+<li>이렇게 사용하면 <code>Sum</code>함수에 세 번째, 네 번째 매개변수의 함수 포인터에 <code>NULL</code>값이 대입되어 <code>Sum</code>함수의 <code>if</code>문은 둘 다 처리되지 않는다.</li>
+<li>따라서 <code>-3</code>과 <code>-2</code>는 양수로 변환되지 않고 <code>a + b</code>결과 값 <code>-5</code>를 반환한다.</li>
+</ul>
+<h3 id="함수의-매개변수로-함수의-주소를-전달하여-호출하기"><a class="header" href="#함수의-매개변수로-함수의-주소를-전달하여-호출하기">함수의 매개변수로 함수의 주소를 전달하여 호출하기</a></h3>
+<ul>
+<li>만약 라이브러리 사용자가 <code>Sum</code>함수의 첫 번째 매개변수에만 음수가 전달되는 경우에 양수로 바꿔서 더하고 싶다면 다음과 같이 함수를 사용하면 된다.</li>
+</ul>
+<pre><code class="language-c">#include &quot;sum.h&quot;
+#pragma comment(lib, &quot;sum.lib&quot;)
+
+// 정수 변수 값의 주소를 넘겨주면 해당 값이 음수이면 양수로 변환하는 함수
+// 이 함수를 Sum 함수가 사용할 수 있도록 함수의 원형을 void (*)(int *)형식으로 맞춰야 한다
+void MyAbsolute(int *p) {
+    
+    // 전달된 주소에 있는 값이 음수이면 -1을 곱해서 양수로 만듦
+    if(*p &lt; 0) *p = (*p) * (-1);
+}
+
+void main() {
+    int result = Sum(-3, -2, MyAbsolute, NULL);  // result에 값 1이 저장됨
+}
+</code></pre>
+<ul>
+<li>단계별로 뜯어보자.<br></li>
+</ul>
+<ol>
+<li><code>main</code>함수에서 <code>Sum</code>함수를 호출한다.</li>
+<li><code>Sum</code>함수의 세 번째 매개변수에 <code>MyAbsolute</code>함수의 주소 값이 넘어가서 <code>Sum</code>함수의 함수 포인터 <code>pa</code>에 저장된다.</li>
+<li><code>Sum</code>함수의 <code>pa</code>변수가 <code>NULL</code>이 아니기 때문에 <code>if(NULL != pa) (*pa)(&amp;a);</code> 문장이 수행된다.</li>
+<li><code>Sum</code>함수의 <code>pa</code>변수가 <code>MyAbsolute</code>함수의 주소 값을 가지고 있기 때문에 <code>(*pa)(&amp;a);</code>는 <code>MyAbsolute(&amp;a);</code>라고 사용한 것과 같다.</li>
+<li>따라서 <code>Sum</code>함수의 매개변수 <code>a</code>의 주소 값이 <code>MyAbsolute</code>함수의 포인터 변수 <code>p</code>에 저장된다.</li>
+<li><code>MyAbsolute</code>함수의 포인터 변수 <code>p</code>는 변수 <code>a</code>이 주소 값을 저장하고 있다.</li>
+<li>포인터 변수 <code>p</code>가 가리키는 값은 음수인 <code>-3</code>이라서 <code>if(*p &lt; 0) *p = (*p) * (-1);</code> 조건문이 실행된다.</li>
+<li>따라서 <code>-3</code>에 <code>-1</code>이 곱해져서 양수로 변환된 결과 값 <code>3</code>이 <code>Sum</code>함수의 변수 <code>a</code>에 저장된다.</li>
+<li>함수의 포인터 <code>pb</code>에는 <code>NULL</code>값이 저장되어 있기 때문에 <code>if(NULL != pb) (*pb)(&amp;b);</code> 조건문은 실행되지 않는다.</li>
+<li><code>Sum</code>함수의 변수 <code>a</code> 값이 <code>-3</code>에서 <code>3</code>으로 변경되었기 때문에 <code>3 + (-2)</code>가 수행되어 <code>1</code>이 반환된다.</li>
+</ol>
+<ul>
+<li>결과적으로 라이브러리 안에 있는 <code>Sum</code>함수는 수정되지 않았지만, 함수 포인터를 사용해서 <code>MyAbsolute</code>함수를 호출했기 때문에 다음고 같이 사용한 것과 같다.</li>
+</ul>
+<pre><code class="language-c">int Sum(int a, int b) {
+    MyAbsolute(&amp;a);  // if(NULL != pa) (*pa)(&amp;a);
+    return a + b;
+}
+</code></pre>
+<h3 id="함수의-암시적-호출-콜백"><a class="header" href="#함수의-암시적-호출-콜백">함수의 암시적 호출: 콜백</a></h3>
+<ul>
+<li>이렇게 함수 포인터를 사용하면 <code>Sum</code>함수는 <code>a</code>, <code>b</code>변수에 대한 어떤 요구 조건이 생겨도 다 처리할 수 있다.</li>
+<li>라이브러리에 포함된 <code>Sum</code>함수에 새로운 기능이 필요하더라도 사용자가 라이브러리 프로그래머에게 기능을 추가해 달라는 요구를 하지 않아도 되는 것이다.</li>
+<li>왜냐하면 자신이 직접 <code>MyAbsolute</code>함수를 만들어서 이 함수의 주소 값을 <code>Sum</code>함수에 매개변수로 전달하면 되기 때문이다.</li>
+<li>하지만 <code>sum.lib</code>를 사용하는 사용자 입장에서는 <code>Sum</code>함수 내부의 소스 코드를 볼 수 없다.</li>
+<li>그렇기 때문에 라이브러리를 사용하는 프로그래머의 소스 코드에는 <code>MyAbsolute</code>함수가 구현만 되어 있지 실제로 언제, 어떻게 호출되는지 알 수 없다.</li>
+<li>즉 <code>Sum</code>함수가 적절한 시점에 매개변수로 전달된 <code>MyAbsolute</code>함수를 호출해서 결과 값을 만들어 준다고 예상만 할 뿐이다.</li>
+<li>이런식으로 자신이 사용할 함수가 명시적으로 호출되지 않고 함수 포인터에 의해서 호출되는 방식을 암시적 호출, '콜백'(Callback)이라고 한다.</li>
+<li>그리고 이때 암시적으로 호출되는 <code>MyAbsolute</code>함수를 '콜백 함수'라고 한다.</li>
+<li>암시적 호출이란 구체적으로 함수를 명시 하지는 않지만 주어진 상황을 통해 판단해서 함수를 사용(호출)하는 방식이다.</li>
+<li>예를 들어 윈도우 운영체제에서 모니터에 어떤 화면이 출력되는 프로그램을 개발한다면 반드시 콜백을 사용해야 한다.</li>
+</ul>
+<blockquote>
+<h4 id="콜백-함수는-미래를-준비하는-함수이다"><a class="header" href="#콜백-함수는-미래를-준비하는-함수이다">콜백 함수는 미래를 준비하는 함수이다</a></h4>
+<ul>
+<li>라이브러리 프로그래머들은 자신의 라이브러리를 사용할 많은 사용자들을 위해 다양한 조건을 미리 예측해야 한다.</li>
+<li>그러나 예측을 많이하고, 예측한 내용을 모두 함수에 반영하다 보면 조건문이 많아져서 해당 함수는 비효율적인 함수가 될 수도 있기 때문에 다 좋은 것은 아니다.</li>
+<li>그래서 정말 필요한 기능만 함수에 구현하고 나머지 예상되는 조건은 함수 포인터를 사용하여 이 함수를 사용할 사용자들에게 도움을 요청하는 것이 바로 콜백 구조이다.</li>
+<li>예측할 수 없는 여러 가지 조건을 미리 조건문으로 처리하는 것은 현실적으로 어렵지만 콜백 구조를 사용하면 이후에 어떤 문제가 생기든 콜백 함수를 사용해서 대처할 수 있다.</li>
+<li>이것이 운영체제가 콜백 구조를 많이 사용하는 이유이다.</li>
+</ul>
+</blockquote>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="주니어-프로그래머-딱지-떼는-다섯-가지-팁"><a class="header" href="#주니어-프로그래머-딱지-떼는-다섯-가지-팁">주니어 프로그래머 딱지 떼는 다섯 가지 팁!</a></h1>
 <h2 id="tip-1-함수가-필요한-이유를-기억하자"><a class="header" href="#tip-1-함수가-필요한-이유를-기억하자">Tip 1. 함수가 필요한 이유를 기억하자</a></h2>
 <ul>
@@ -9938,7 +10321,432 @@ c = (unsigned char) a;      // a의 1바이트만 c로 복사함
 <ul>
 <li>결과적으로 형 변환 연산자를 사용하면 원하는 크기만큼 정보를 복사할 수 있지만, 복사되는 변수는 메모리가 확장되어 전체 값이 변경된다는 점에 주의하자.</li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="tip2-주니어-프로그래머-딱지-떼는-일곱-가지-팁"><a class="header" href="#tip2-주니어-프로그래머-딱지-떼는-일곱-가지-팁">Tip2. 주니어 프로그래머 딱지 떼는 일곱 가지 팁!</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="주니어-프로그래머-딱지-떼는-일곱-가지-팁"><a class="header" href="#주니어-프로그래머-딱지-떼는-일곱-가지-팁">주니어 프로그래머 딱지 떼는 일곱 가지 팁!</a></h1>
+<h2 id="tip-1-공용체를-적재적소에-활용하면-메모리를-절약할-수-있다"><a class="header" href="#tip-1-공용체를-적재적소에-활용하면-메모리를-절약할-수-있다">Tip 1. 공용체를 적재적소에 활용하면 메모리를 절약할 수 있다</a></h2>
+<h3 id="구조체-문법과-비슷한-공용체"><a class="header" href="#구조체-문법과-비슷한-공용체">구조체 문법과 비슷한 공용체</a></h3>
+<ul>
+<li>사용자 정의 자료형을 만드는 구조체와 문법 구조가 비슷한 공용체(union) 문법이 있다.</li>
+<li>구조체에서 <code>struct</code>키워드를 적는 위치에 공용체는 <code>union</code>이라고 적는다.</li>
+<li>그 외 공용체의 문법은 구조체의 문법과 거의 비슷하다.</li>
+<li>다음은 공용체 문법과 <code>typedef</code>를 사용해서 <code>Convert Data</code>라는 새로운 자료형을 만드는 예제이다.</li>
+</ul>
+<pre><code class="language-c">typedef union ConvertData {
+    char c_data;       // 1바이트
+    short int s_data;  // 2바이트
+    int i_data;        // 3바이트
+} CD;
+</code></pre>
+<ul>
+<li>공용체도 구조체와 마찬가지로 새로운 자료형을 만들거나 그 자료형으로 변수를 선언하려면 항상 <code>union</code>키워드를 적어주어야 한다.</li>
+<li>위 예제에서는 <code>typedef</code>문법을 함께 사용해서 <code>CD</code>라는 자료형을 추가로 만들었다.</li>
+<li>따라서 다음과 같이 <code>CD</code>를 사용하면 <code>union</code>키워드를 사용하지 않고도 간단하게 변수를 선언할 수 있다.</li>
+</ul>
+<pre><code class="language-c">CD temp;  // union ConvertData temp; 와 같음
+</code></pre>
+<h3 id="공용체의-요소들은-할당된-메모리를-공유한다"><a class="header" href="#공용체의-요소들은-할당된-메모리를-공유한다">공용체의 요소들은 할당된 메모리를 공유한다</a></h3>
+<ul>
+<li>이렇게 구조체 문법과 비슷한 공용체 문법이 있는 이유는 무엇일까?</li>
+<li>구조체로 만든 자료형의 크기는 구조체를 구성하는 요소들의 크기를 모두 더한 것과 같다.</li>
+<li>하지만 공용체로 만든 자료형의 크기는 공용체를 구성하는 요소들 중에서 가장 큰 크기와 같다.</li>
+<li>따라서 이전에 선언한 <code>ConvertData</code> 공용체는 <code>i_data</code>요소가 4바이트로 가장 크기 때문에 <code>CD</code>로 선언한 <code>temp</code>변수의 크기는 4바이트가 된다.</li>
+<li>공용체 내부에 선언한 나머지 요소 <code>c_data</code>와 <code>s_data</code>는 메모리를 할당 받지 않았으니 사용할 수 없는 것인가? Nope.</li>
+<li>공용체라는 이름이 말해 주듯이 공용체를 구성하는 각 요소들은 서로 같은 메모리를 공유하는 형태로 되어 있다.</li>
+<li>즉 <code>ConvertData</code> 공용체의 <code>i_data</code>요소는 4바이트 전체를 사용하고, <code>s_data</code>요소는 4바이트에서 첫 2바이트를 사용하며, <code>c_data</code>요소는 처음 1바이트만을 사용하는 개념이다.</li>
+<li>그래서 다음과 같이 제일 큰 <code>i_data</code>요소에 값을 대입하면 <code>s_data</code>와 <code>c_data</code>에도 영향을 미친다.</li>
+</ul>
+<pre><code class="language-c">temp.i_data = 0x12345678;
+</code></pre>
+<p><img src="./images/union_1.png" alt="공용체의 요소들 - 1" /></p>
+<ul>
+<li>공용체는 각 요소들이 같은 메모리를 공유하기 때문에 위의 그림에서처럼 <code>temp.i_data</code>에 값을 대입했을 때 <code>temp.s_data</code>에는 <code>0x5678</code>, <code>temp.c_data</code>에는 <code>0x78</code>을 대입한 것과 같은 효과가 있다.</li>
+<li>그래서 이런 공용체의 기능을 잘 이용하면 4바이트 크기를 갖는 정수 값에서 2바이트나 1바이트의 값을 추출할 수 있다.</li>
+<li>예를 들어 4바이트 크기의 값을 입력 받아 앞에서 2바이트 크기만 사용하고 싶다면 다음과 같이 <code>temp.i_data</code>로 값을 입력 받고 <code>temp.s_data</code>로 사용하면 되는 것이다.</li>
+</ul>
+<pre><code class="language-c">CD temp;
+short int s;
+temp.i_data = 0x12345678;  // 4바이트 공간에 정수 값을 대입함
+s = temp.s_data;           // 변수 s에 0x5678이 저장됨
+</code></pre>
+<p><img src="./images/union_2.png" alt="공용체의 요소들 - 2" /></p>
+<h3 id="공용체는-메모리-절약의-끝판왕"><a class="header" href="#공용체는-메모리-절약의-끝판왕">공용체는 메모리 절약의 끝판왕</a></h3>
+<ul>
+<li>공용체는 메모리를 절약하는 용도로 더 많이 사용한다.</li>
+<li>아래에 <code>MyData</code>라는 구조체를 선언했다.</li>
+<li>구조체의 요소 중 <code>type</code>요소의 값이 <code>0</code>이면 <code>i_data</code> 변수에 정수 값을 저장하고, <code>type</code>요소의 값이 <code>1</code>이면 <code>f_data</code>에 실수 값을 저장한다고 가정해보자.</li>
+<li>그리고 <code>i_data</code>와 <code>f_data</code>가 동시에 사용되는 경우는 없다고 가정하자.</li>
+</ul>
+<pre><code class="language-c">struct MyData {
+    char type;
+    int i_data;    // type 요소 값이 0이면 사용함
+    float f_data;  // type 요소 값이 1이면 사용함
+};
+</code></pre>
+<ul>
+<li><code>MyData</code>구조체로 변수를 선언하면 <code>type</code>요소의 값이 무엇인지에 따라 <code>i_data</code>또는 <code>f_data</code>중에 하나만 사용되기 때문에 항상 4바이트를 낭비하게 된다.</li>
+<li>왜냐하면 <code>type</code>요소의 값이 <code>0</code>이면 <code>f_data</code>가 선언된 메모리는 사용되지 않을 것이고, <code>type</code>요소의 값이 <code>1</code>이면 <code>i_data</code>가 선언된 메모리가 사용되지 않기 때문이다.</li>
+</ul>
+<p><img src="./images/union_3.png" alt="공용체 요소들 - 3" /></p>
+<ul>
+<li>위 상황처럼 구조체의 각 요소가 함께 사용되지 않고 서로 반대되는 경우에만 사용될 때, 두 요소가 메모리를 공유한다면 공간을 낭비하지 않을 것이다.</li>
+<li>따라서 다음과 같이 공용체 문법을 사용해서 새로운 자료형을 만들고, 그 자료형으로 <code>MyData</code>구조체에 요소를 추가하면 위에서 발생한 메모리 낭비 문제를 해결할 수 있다.</li>
+</ul>
+<pre><code class="language-c">// i_data와 f_data가 4바이트 메모리를 공유하는 공용체 자료형을 정의함
+union SharedType {
+    int i_data;    // 정수 값을 저장할 변수
+    float f_data;  // 실수 값을 저장할 변수
+};
+
+struct MyData {
+    char type;
+    union SharedType data;
+};
+
+void main() {
+    struct MyData a, b;
+    a.type = 0;  // a 구조체의 type 요소에 0을 저장함
+    a.data.i_data = 100;
+    b.type = 1;  // b 구조체의 type 요소에 1을 저장함
+    b.data.f_data = 3.14f;
+}
+</code></pre>
+<ul>
+<li><code>type</code>요소의 값이 <code>0</code>일 때는 <code>data.i_data</code>요소를 사용해서 정수를 저장하고, <code>type</code>요소의 값이 <code>1</code>일 때는 <code>data.f_data</code>요소를 사용해서 실수를 저장하면 된다.</li>
+<li>이렇게 하면 앞에서 구조체를 사용했던 것과 같은 기능을 할 것이다.</li>
+<li>그리고 <code>SharedType</code>자료형이 공용체이기 때문에 결과적으로 동시에 사용하지 않는다는 조건만 만족한다면 몇 개의 변수를 사용하든지 상관없이 공용체로 해당 변수들을 묶어서 메모리를 절약할 수 있다.</li>
+</ul>
+<p><img src="./images/union_4.png" alt="공용체 요소들 - 4" /></p>
+<h2 id="tip-2-비트-단위-연산이-복잡하다면-구조체와-공용체를-쓰자"><a class="header" href="#tip-2-비트-단위-연산이-복잡하다면-구조체와-공용체를-쓰자">Tip 2. 비트 단위 연산이 복잡하다면? 구조체와 공용체를 쓰자</a></h2>
+<h3 id="구조체-문법으로-비트-단위-분리하기"><a class="header" href="#구조체-문법으로-비트-단위-분리하기">구조체 문법으로 비트 단위 분리하기</a></h3>
+<ul>
+<li>변수에 입력된 정보를 비트 단위로 값을 확인하거나 변경하고 싶은 경우에는 비트 연산자를 사용하면 된다.</li>
+<li>C 언어는 구조체 문법에서 비트 단위로 데이터를 사용하는 기능을 추가로 제공하고 있다.</li>
+<li>아래와 같이 구조체를 선언하면 새로운 자료형 <code>BitType</code>이 1바이트 크기로 만들어진다.</li>
+</ul>
+<pre><code class="language-c">// 비트 단위 정보를 다룰 수 있도록 구조체를 선언함
+struct BitType {
+    unsigned char bit_0 : 1;
+    unsigned char bit_1 : 1;
+    unsigned char bit_2 : 1;
+    unsigned char bit_3 : 1;
+    unsigned char bit_4 : 1;
+    unsigned char bit_5 : 1;
+    unsigned char bit_6 : 1;
+    unsigned char bit_7 : 1;
+};
+</code></pre>
+<ul>
+<li>각 요소(<code>bit_0</code>~<code>bit_7</code>)의 오른쪽에 <code>: 1</code>이라고 적은 것은 비트 크기를 의미한다.</li>
+<li>예를 들어 <code>unsigned char bit_0 : 1;</code>이라고 적으면 <code>bit_0</code>은 1비트 값을 사용한다는 뜻이다.</li>
+<li>따라서 <code>BitType</code>구조체는 <code>bit_0</code>부터 <code>bit_7</code>까지 1비트 값을 총 8개 정의했기 때문에 크기가 1바이트(8비트)가 된다.</li>
+<li>다음과 같이 <code>BitType</code>으로 <code>data</code>변수를 선언하면 <code>data</code>변수는 1바이트 크기로 메모리가 할당된다.</li>
+<li>그리고 구조체의 요소에 비트 값을 대입하면 <code>data</code>변수에는 값 <code>0x05</code>가 저장된다.</li>
+<li>따라서 비트 연산자를 사용하는 것보다는 좀 더 편하게 비트 값을 사용할 수 있다.</li>
+</ul>
+<pre><code class="language-c">struct BitType data;
+
+data.bit_0 = 1;
+data.bit_1 = 0;
+data.bit_2 = 1;
+data.bit_3 = 0;
+data.bit_4 = 0;
+data.bit_5 = 0;
+data.bit_6 = 0;
+data.bit_7 = 0;
+</code></pre>
+<p><img src="./images/stuct_bit_type_1.png" alt="구조체 비트타입 1" /></p>
+<h4 id="구조체-비트-분리-기능을-사용한-변수는-다른-일반-변수와-값을-주고받기-어렵다"><a class="header" href="#구조체-비트-분리-기능을-사용한-변수는-다른-일반-변수와-값을-주고받기-어렵다">구조체 비트 분리 기능을 사용한 변수는 다른 일반 변수와 값을 주고받기 어렵다</a></h4>
+<ul>
+<li><code>data</code>변수에 입력된 값을 다음처럼 <code>unsigned char</code>형으로 선언한 <code>temp</code>변수에 대입하려고 하면 오류가 발생한다.</li>
+</ul>
+<pre><code class="language-c">unsigned char temp;
+temp = data;  // 오류 발생: data는 BitType 구조체로 만든 변수임
+</code></pre>
+<ul>
+<li><code>temp</code>도 1바이트이고 <code>data</code>변수도 1바이트이기 때문에 <code>data</code>값을 <code>temp</code>에 대입하면 문제가 없을 것이라 생각할 수도 있지만 구조체 변수는 <code>data.bit_0</code>과 같이 <code>.</code>(요소 지정) 연산자와 요소(<code>bit_0</code>)를 함께 사용해야만 대입 연산을 할 수 있다.</li>
+<li>예외적으로 같은 구조체로 선언한 변수 간에는 변수 이름만으로도 복사가 된다.</li>
+<li>위의 예제는 형 변환을 사용해도 오류를 해결할 수 없다.</li>
+<li>왜냐하면 이 문제는 단순히 데이터 크기의 차이가 원인이 아니라 구조체의 비트 분리 문법을 사용해서 데이터 형식이 달라져버려서 발생한 것이기 때문이다.</li>
+<li>예를 들어 <code>int</code>형과 <code>float</code>형의 경우에 데이터 크기는 같지만 데이터를 구성하는 형식이 다르기 때문에 <code>float</code>값을 <code>int</code>에 대입하면 값이 제대로 대입되지 않는 것과 비슷한 상황인 것이다.</li>
+</ul>
+<pre><code class="language-c">unsigned char temp;
+temp = (unsigned char) data;  // 오류 발생: 데이터 형식이 달라서 형 변환에 실패함
+</code></pre>
+<ul>
+<li>따라서 다음과 같이 메모리를 강제로 복사하는 <code>memcpy</code>함수를 사용해 문제를 해결할 수 있다.</li>
+</ul>
+<pre><code class="language-c">unsigned char temp;
+
+// data 변수의 시작 주소에서 temp 변수의 시작 주소로 1바이트 크기만큼 메모리를 복사함
+memcpy(&amp;temp, &amp;data, 1);
+</code></pre>
+<h3 id="공용체를-사용해서-좀-더-편하게-비트-단위-분리하기"><a class="header" href="#공용체를-사용해서-좀-더-편하게-비트-단위-분리하기">공용체를 사용해서 좀 더 편하게 비트 단위 분리하기</a></h3>
+<ul>
+<li>다음과 같이 공용체를 선언하면 <code>BitData</code>자료형의 크기는 1바이트가 되고 <code>bit_data</code>요소와 <code>byte_data</code>요소는 1바이트 크기의 메모리를 공유하게 된다.</li>
+</ul>
+<pre><code class="language-c">union BitData {  // 1바이트 크기의 자료형
+    struct BitType bit_data;  // 1바이트
+    unsigned char byte_data;  // 1바이트
+};
+</code></pre>
+<ul>
+<li>따라서 다음과 같이 <code>BitData</code>자료형으로 <code>temp</code>변수를 선언하고 <code>temp</code>변수의 <code>byte_data</code>요소에 값 <code>0x63</code>을 대입하면, 메모리를 공유하는 <code>temp</code>변수의 <code>bit_data</code>요소에도 비트 단위로 값을 대입한 것과 같다.</li>
+</ul>
+<pre><code class="language-c">union BitData = temp;
+temp.byte_data = 0x63;
+</code></pre>
+<p><img src="./images/union_bit.png" alt="공용체로 비트 단위 분리하기" /></p>
+<pre><code class="language-c">/* 구조체의 비트 분리 기능을 사용하여 변수의 비트 값 출력하기 */
+
+#include &lt;stdio.h&gt;
+
+struct BitType {  // 구조체를 비트 단위의 정보를 다룰 수 있도록 선언함
+    unsigned char bit_0: 1;
+    unsigned char bit_1: 1;
+    unsigned char bit_2: 1;
+    unsigned char bit_3: 1;
+    unsigned char bit_4: 1;
+    unsigned char bit_5: 1;
+    unsigned char bit_6: 1;
+    unsigned char bit_7: 1;  // 최상위 비트
+};
+
+union BitData {  // 1바이트 크기의 자료형
+    struct BitType bit_data;
+    unsigned char byte_data;
+};
+
+void main() {
+    union BitData temp;
+    temp.byte_data = 0x63;
+
+    printf(&quot;byte_data : %x\n&quot;, temp.byte_data);
+    printf(&quot;bit_data : %d%d%d%d %d%d%d%d\n&quot;, temp.bit_data.bit_7, temp.bit_data.bit_6, temp.bit_data.bit_5,
+           temp.bit_data.bit_4, temp.bit_data.bit_3, temp.bit_data.bit_2, temp.bit_data.bit_1, temp.bit_data.bit_0);
+}
+</code></pre>
+<pre><code class="language-text">byte_data : 63
+bit_data : 0110 0011
+</code></pre>
+<ul>
+<li>위 예제를 반대로 구성하여 <code>bit_data</code>에 비트 값을 넣고 <code>byte_data</code>로 확인하는 것도 가능하다.</li>
+<li>연산 능력은 비트 연산자가 더 좋다.</li>
+<li>개인적으로 비트 연산자를 사용하는 것을 더 추천한다.</li>
+</ul>
+<h2 id="tip-3-define과-typedef를-헷갈리지-말자"><a class="header" href="#tip-3-define과-typedef를-헷갈리지-말자">Tip 3. #define과 typedef를 헷갈리지 말자</a></h2>
+<ul>
+<li>전처리기인 <code>#define</code>문법과 사용자 정의 자료형을 만드는 <code>typedef</code>문법은 다음처럼 A를 B로 치환하는 형식을 가지고 있다.</li>
+</ul>
+<pre><code class="language-c">typedef unsigned short int * PSI;  // PSI라는 새로운 자료형을 정의함
+</code></pre>
+<pre><code class="language-c">#define PSI unsigned short int *  // 전처리기라서 끝에 ;이 필요 없음
+</code></pre>
+<ul>
+<li><code>typedef</code>를 사용하면 <code>unsigned short int *</code>자료형을 <code>PSI</code>자료형으로 새롭게 정의할 수 있다.</li>
+<li>그리고 <code>#define</code>문법을 사용하고 소스 코드에 <code>PSI</code>라고 쓰면 컴파일할 때 <code>PSI</code>가 <code>unsigned short int *</code>로 치환된다.</li>
+<li>따라서 다음과 같이 사용하면 두 문법은 아주 비슷해 보인다.</li>
+</ul>
+<pre><code class="language-c">typedef unsigned short int *PSI;
+PSI p_temp;  // unsigned short int *p_temp; 와 같음
+</code></pre>
+<pre><code class="language-c">#define PSI unsigned short int *
+
+PSI p_test;  // unsigned short int *p_test; 와 같음
+</code></pre>
+<h3 id="define을-사용해-자료형을-치환하면-문제가-생긴다"><a class="header" href="#define을-사용해-자료형을-치환하면-문제가-생긴다">#define을 사용해 자료형을 치환하면 문제가 생긴다</a></h3>
+<ul>
+<li>단순하게 사용했을 때는 두 문법이 비슷하게 보이지만 내용을 조금 더 추가해 보면 두 문법이 다르다는 것을 알 수 있다.</li>
+</ul>
+<pre><code class="language-c">typedef unsigned short int *PSI;
+PSI p_temp, p1;  // unsigned short int *p_temp, unsigned short int *p1; 을 의미함
+</code></pre>
+<pre><code class="language-c">#define PSI unsigned short int *
+
+PSI p_test, p2;  // unsigned short int *p_test, unsigned short int p2; 를 의미함
+</code></pre>
+<ul>
+<li><code>typedef</code> 문법을 사용하면 자료형을 새로 만든 것이기 때문에 <code>PSI</code>가 <code>unsigned short int *</code>를 의미한다.</li>
+<li>따라서 <code>PSI p_temp, p1;</code>이라고 사용하면 <code>unsigned short int *p_temp, *p1;</code>을 의미한다.</li>
+<li>즉 <code>p_temp, p1</code>변수 모두 <code>unsigned short int *</code>형식의 포인터로 선언된다.</li>
+<li>하지만 <code>#define</code>을 사용하면 <code>p_test</code>만 <code>unsigned short int *</code>로 바뀐다.</li>
+<li>따라서 <code>PSI p_test, p2;</code>라고 사용하면 <code>unsigned short int *p_test, p2;</code>를 의미한다.</li>
+<li>즉 <code>p_test</code>는 <code>unsigned short int *</code>형식의 포인터로 선언되지만 <code>p2</code>는 <code>unsigned short int</code>형 일반 변수로 선언된다.</li>
+<li>자료형을 치환하기 위해 <code>#define</code>을 사용하는 것은 편법일 뿐이다.</li>
+<li>따라서 자료형을 치환할 때는 원칙을 지켜서 <code>typedef</code>문법을 사용하자.</li>
+</ul>
+<h3 id="typedef-문법으로-상수-치환은-불가능하다"><a class="header" href="#typedef-문법으로-상수-치환은-불가능하다">typedef 문법으로 상수 치환은 불가능하다</a></h3>
+<ul>
+<li>반대의 경우도 마찬가지이다.</li>
+<li>두 문법이 비슷하다고 <code>typedef</code>문법을 자료형 치환이 아닌 단순 치환 형태로 사용하면 안된다.</li>
+</ul>
+<pre><code class="language-c">typedef 100 MAX_COUNT;  // 오류 발생: 상수는 자료형이 아님
+</code></pre>
+<ul>
+<li><code>typedef</code>문법은 <code>typedef</code>키워드를 제거했을 때 변수를 선언하는 형식을 유지해야 한다.</li>
+</ul>
+<h2 id="tip-4-열거형-상수를-좀-더-효과적으로-치환하는-방법"><a class="header" href="#tip-4-열거형-상수를-좀-더-효과적으로-치환하는-방법">Tip 4. 열거형: 상수를 좀 더 효과적으로 치환하는 방법</a></h2>
+<pre><code class="language-c">#define BLACK    0
+#define WHITE    1
+#define RED      2
+#define GREEN    3
+#define BLUE     4
+#define YELLOW   5
+</code></pre>
+<ul>
+<li>이렇게 나열해서 적으면 불편할 것이다.</li>
+<li>상수를 연속적으로 치환하는 경우에는 열거형(enum) 상수를 사용해서 선언하자.</li>
+</ul>
+<pre><code class="language-c">enum MY_COLOR { BLACK, WHITE, RED, GREEN, BLUE, YELLOW };
+</code></pre>
+<ul>
+<li>이렇게 열거형 상수를 사용하면서 상수 값을 따로 적지 않으면 처음 위치에 있는 <code>BLACK</code>값이 0으로 치환되고 그 뒤에 있는 치환문(<code>WHITE</code>, <code>RED</code>, ⋯)들은 차례대로 1씩 증가한다.</li>
+<li>이렇게 선언한 열거형 상수는 <code>#define</code>을 선언한 것과 같은 형태로 사용할 수 있다.</li>
+</ul>
+<pre><code class="language-c">int my_data = GREEN;  // my_data 에 0을 대입함
+</code></pre>
+<h2 id="tip-5-조건부-컴파일-자기가-만든-코드를-테스트하는-것이-프로그래머의-기본이다"><a class="header" href="#tip-5-조건부-컴파일-자기가-만든-코드를-테스트하는-것이-프로그래머의-기본이다">Tip 5. 조건부 컴파일: 자기가 만든 코드를 테스트하는 것이 프로그래머의 기본이다</a></h2>
+<ul>
+<li>프로그램을 만들다 보면 소스 파일의 여러 곳에 자신의 코드를 체크하기 위한 테스트 코드를 추가하게 된다.</li>
+</ul>
+<pre><code class="language-c">int ProcessData(int data) {
+    int result;
+    if(data &lt; 256) {            // 예외 확인을 위한 테스트 코드
+        result = data * 100;
+    } else {                    // 예외 확인을 위한 테스트 코드
+        printf(&quot;Error!!\n&quot;);
+    }
+    return result;
+}
+</code></pre>
+<ul>
+<li>테스트 코드를 한 곳에만 사용한 것이 아니고 소스 코드 전체에 여기저기 사용했다면 코드 정리가 어려울 것이다.</li>
+</ul>
+<h3 id="전처리기를-사용해서-조건에-따라-필요한-문장만-골라-컴파일하기"><a class="header" href="#전처리기를-사용해서-조건에-따라-필요한-문장만-골라-컴파일하기">전처리기를 사용해서 조건에 따라 필요한 문장만 골라 컴파일하기</a></h3>
+<ul>
+<li>C 언어는 주어진 조건에 따라 컴파일할 수 있도록 다양한 전처리기를 제공한다.</li>
+</ul>
+<h4 id="ifdef-전처리기와-endif-전처리기"><a class="header" href="#ifdef-전처리기와-endif-전처리기">#ifdef 전처리기와 #endif 전처리기</a></h4>
+<ul>
+<li><code>ifdef</code>는 if define의 줄임 표현이고 <code>endif</code>는 end of ifdef의 줄임 표현이다.</li>
+<li>아래이 두 코드는 컴파일된 결과가 같다.</li>
+</ul>
+<pre><code class="language-c">int ProcessData(int data) {
+    int result;
+    if(data &lt; 256) {            // 예외 확인을 위한 테스트 코드
+        result = data * 100;
+    } else {                    // 예외 확인을 위한 테스트 코드
+        printf(&quot;Error!!\n&quot;);
+    }
+    return result;
+}
+</code></pre>
+<pre><code class="language-c">#define MY_DEBUG
+
+int ProcessData(int data) {
+    int result;
+#ifdef MY_DEBUG                  // 이 구간은 MY_DEBUG가
+    if(data &lt; 256)               // #define문으로 선언되어 있어야
+#endif                           // 컴파일된다.
+        result = data * 100;
+#ifdef MY_DEBUG                  // 이 구간은 MY_DEBUG가
+    else                         // #define문으로 선언되어 있어야
+        printf(&quot;Error!!\n&quot;);     // 컴파일된다.
+#endif                           //
+    return result;
+}
+</code></pre>
+<ul>
+<li>결론적으로 소스 코드에서 <code>#define MY_DEBUG</code> 치환문만 제거하면 소스에 있는 모든 <code>#ifdef MY_DEBUG</code> ~ <code>#endif</code>가 주석으로 처리되는 효과가 생겨서 테스트 코드를 관리하기 편해진다.</li>
+<li>이렇게 테스트 코드를 관리하는 방법을 '조건부 컴파일'이라고 부른다.</li>
+</ul>
+<h4 id="ifdef와-반대인-ifndef-전처리기"><a class="header" href="#ifdef와-반대인-ifndef-전처리기">#ifdef와 반대인 #ifndef 전처리기</a></h4>
+<ul>
+<li><code>#ifdef</code>와 반대되는 의미로 <code>#ifndef</code>가 제공되는데 이 전처리기는 if not define을 의미한다.</li>
+<li>다음 예시에서 <code>MY_DEBUG</code>가 <code>#define</code>되지 않았기 때문에 <code>#ifndef MY_DEBUG</code>에서 <code>#endif</code>까지 컴파일에 포함된다.</li>
+</ul>
+<pre><code class="language-c">#ifndef MY_DEBUG  // if not define의 뜻
+        
+// 사용하고 싶은 코드(생략)
+
+#endif
+</code></pre>
+<h3 id="헤더-파일-중복-참조를-막는-방법"><a class="header" href="#헤더-파일-중복-참조를-막는-방법">헤더 파일 중복 참조를 막는 방법</a></h3>
+<ul>
+<li>위에서 이야기한 조건부 컴파일 전처리기들은 실무에서 헤더 파일을 선언할 때 더 많이 사용한다.</li>
+<li><code>#include</code>를 중복 사용해서 발생하는 오류는 <code>#ifndef</code>~<code>#endif</code>문을 사용하여 해결할 수 있다.</li>
+</ul>
+<blockquote>
+<p><code>test.h</code></p>
+<pre><code class="language-c">#ifndef _TEST_H_  // _TEST_H_ 가 정의되어 있지 않다면 이후 코드를 컴파일함
+#define _TEST_H_  // _TEST_H_ 를 정의함
+
+struct MyData {
+    int a;
+    int b;
+};
+
+#endif
+</code></pre>
+</blockquote>
+<ul>
+<li>위와 같이 헤더 파일을 구성하면 <code>test.h</code>헤더 파일이 처음 <code>#include</code>될 때는 <code>_TEST_H_</code>가 정의되어 있지 않아서 <code>#ifndef</code>를 처리한다.</li>
+<li>그리고 <code>#define _TEST_H_</code>코드를 수행해서 <code>_TEST_H_</code>가 정의된다.</li>
+<li>따라서 <code>test.h</code>헤더 파일이 다시 <code>#include</code>되더라도 <code>_TEST_H_</code>가 이미 정이되어 있기 때문에 <code>#ifndef</code>에서 <code>#endif</code>까지 컴파일에서 제외된다.</li>
+</ul>
+<h2 id="tip-6-포인터와-증감-연산자를-잘-써야-명령문이-간단해진다"><a class="header" href="#tip-6-포인터와-증감-연산자를-잘-써야-명령문이-간단해진다">Tip 6. 포인터와 증감 연산자를 잘 써야 명령문이 간단해진다</a></h2>
+<ul>
+<li>포인터를 사용하다 보면 비슷하게 생긴 명령문이 완전히 다르게 동작해서 오류가 발생하는 경우가 많다.</li>
+<li>그 중에서도 포인터와 증감 연산자를 함께 사용하면 연산자 우선순위와 증감 연산자의 전위·후위 연산 특성 때문에 실수를 많이 할 수밖에 없습니다.</li>
+<li>하지만 포인터와 증감 연산자를 잘 활용하면 명령문을 간단한 형태로 만들 수 있기 때문에 실무에 있는 프로그래머들이 즐겨 사용한다.</li>
+<li>아래의 표현들을 정확하게 알아두자!</li>
+</ul>
+<h3 id="p와-p의-의미"><a class="header" href="#p와-p의-의미">*p++와 *++p의 의미</a></h3>
+<ul>
+<li><code>*p++</code>는 자신이 가리키는 주소에 저장된 값을 사용한 후 자신의 주소를 증가시킨다는 의미이고 <code>*++p</code>는 자신의 주소를 증가시킨 후에 그 주소에 가서 값을 사용한다는 뜻이다.</li>
+</ul>
+<pre><code class="language-c">char data[5] = {'a', 'b', 'c', 'd', 'e'};
+char *p1 = data, *p2 = data, data1, data2;
+
+// *p1이 먼저 처리되어 data1에는 'a'값이 저장된다.
+// 저장 후에 p1++가 처리되어 주소가 증가하면 p1은 'b'의 위치로 이동하지만 data1에는 영향이 없다.
+data1 = *p1++;
+
+// p2의 주소가 먼저 증가되어 p2는 'b'이 위치로 이동한다.
+// 이동후에 *p2가 처리되어 data2에는 'b'값이 저장된다.
+data2 = *++p2;
+</code></pre>
+<ul>
+<li>작업 후에 포인터 변수 <code>p1</code>과 <code>p2</code>는 둘 다 <code>data</code>배열의 두 번째 요소 주소를 가리킨다.</li>
+<li>하지만 작업 순서 때문에 <code>data1</code>에는 값 <code>a</code>가, <code>data2</code>에는 값 <code>b</code>가 저장된다.</li>
+</ul>
+<h3 id="p와-p는-서로-다른-의미"><a class="header" href="#p와-p는-서로-다른-의미">*++p와 ++*p는 서로 다른 의미</a></h3>
+<ul>
+<li><code>*++p</code>는 <code>p</code>가 가지고 있는 주소를 증가시킨 후 그 주소에 저장된 값을 사용한다는 뜻이다.</li>
+<li><code>++*p</code>는 <code>p</code>가 가지고 있는 주소에 저장된 값을 1만큼 증가시키겠다는 뜻이다.</li>
+<li>따라서 <code>*++p</code>는 <code>p</code>의 주소가 변경되고, <code>++*p</code>는 <code>p</code>가 가리키는 대상의 값이 변경된다.</li>
+</ul>
+<pre><code class="language-c">char data[5] = {'a', 'b', 'c', 'd', 'e'};
+char *p1 = data, *p2 = data, data1, data2;
+</code></pre>
+<p><img src="./images/pointer_operator_1.png" alt="포인터와 증감 연산자 1" /></p>
+<pre><code class="language-c">// ++p1이 먼저 처리되어 p1은 'b'의 위치로 이동한다.
+// 이동 후에 *p1이 처리되어 data1에는 값 'b'가 저장된다.
+data1 = *++p1;
+</code></pre>
+<p><img src="./images/pointer_operator_2.png" alt="포인터와 증감 연산자 2" /></p>
+<pre><code class="language-c">// p2가 가리키는 주소에 가서 해당 주소에 저장된 값을 1만큼 증가시키고
+// 그 값을 data2에 저장한다.
+// p2는 주소가 변경되지 않는다.
+data2 = ++*p2;
+</code></pre>
+<p><img src="./images/pointer_operator_3.png" alt="포인터와 증감 연산자 3" /></p>
+<ul>
+<li>결과적으로 <code>data1</code>, <code>data2</code>에는 값 <code>b</code>가 똑같이 들어갔지만 처리 과정에 차이가 많이 난다.</li>
+</ul>
+<h2 id="tip-7-개발-도구의-도움말-웹-페이지를-활용하자"><a class="header" href="#tip-7-개발-도구의-도움말-웹-페이지를-활용하자">Tip 7. 개발 도구의 도움말 웹 페이지를 활용하자</a></h2>
+<ul>
+<li>문자열을 복사하는 함수, 문자열 길이를 얻는 함수를 프로그래머가 일일이 만들어 사용할 필요가 없다.</li>
+<li>C 언어에서 제공하는 <code>strcpy</code>, <code>strlen</code>같은 런타임 함수를 사용하면 된다.</li>
+</ul>
 
                     </main>
 
